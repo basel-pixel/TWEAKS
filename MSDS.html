@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستشفى صيدناوي - صحيفة بيانات السلامة للمواد (SDS)</title>
+    <style>
+        :root {
+            --primary-blue: #004693; /* لون أزرق مستوحى من اللوجو */
+            --bg-color: #f9fbfd;
+            --card-bg: #ffffff;
+            --text-main: #12263f;
+            --border-color: #e3ebf6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 900px; /* تم تكبير العرض ليناسب الجداول والمحتوى العريض */
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* تنسيق الهيدر مع اللوجو */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 15px;
+        }
+
+        .logo-container {
+            text-align: right; /* تعديل الاتجاه ليناسب الـ RTL */
+        }
+
+        /* تنسيق كلمة "مستشفى" الصغيرة */
+        .hospital-text {
+            font-size: 12px;
+            color: var(--primary-blue);
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* تنسيق كلمة "صيدناوي" الكبيرة */
+        .sidnawy-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin: -5px 0 0 0;
+            line-height: 1;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        h1.main-title {
+            color: var(--primary-blue);
+            margin: 0;
+            font-size: 24px;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            border-right: 5px solid #3498db;
+            padding-right: 10px;
+        }
+
+        h3 {
+            padding: 8px 15px;
+            color: #fff;
+            border-radius: 4px;
+            margin-top: 25px;
+        }
+
+        .bg-red { background-color: #c0392b; }
+        .bg-blue { background-color: #2980b9; }
+        .bg-yellow { background-color: #f1c40f; color: #333 !important; }
+        .bg-white { background-color: #bdc3c7; color: #333 !important; }
+        
+        ul {
+            padding-right: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: right;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .grade-cell {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            width: 10%;
+        }
+        .example {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .note-box {
+            background-color: #e8f4f8;
+            border-right: 5px solid #2980b9;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1 class="main-title">صحيفة بيانات السلامة للمواد (SDS) ونظام تقييم NFPA</h1>
+        <div class="logo-container">
+            <p class="hospital-text">مستشفى</p>
+            <p class="sidnawy-text">صيدناوي</p>
+        </div>
+    </div>
+
+    <p>تعتبر أوراق السلامة للمواد الكيميائية مرجعاً أساسياً للمواد الكيميائية فيما يخص السلامة والصحة المهنية داخل أقسام المستشفى والمختبرات.</p>
+    
+    <h2>أقسام صحيفة بيانات السلامة</h2>
+    <p>تُقسم ورقة السلامة للمادة (SDS) إلى الأقسام الرئيسية التالية:</p>
+    <ul>
+        <li>تعريف المنتج.</li>
+        <li>التركيب الكيميائي للمادة.</li>
+        <li>وصف الأخطار المتوقعة من استعمال المادة.</li>
+        <li>الإسعافات الأولية الواجب اتخاذها إذا ما وقع حادث عند العمل بهذه المادة.</li>
+        <li>طرق إطفاء الحرائق الناجمة عن المادة.</li>
+        <li>الإجراءات الواجب إتباعها في حالة التسرب.</li>
+        <li>استخدام الطريقة الصحيحة لحفظ المادة والتعامل معها.</li>
+        <li>الحماية الشخصية في حالة التعرض لمخاطر من هذه المادة.</li>
+        <li>خواص المادة الكيميائية والفيزيائية.</li>
+        <li>ظروف ثبات المادة وتفاعلاتها.</li>
+        <li>معلومات عن مدى سمية المادة.</li>
+        <li>مدى تأثير المادة على البيئة في حالة التسرب.</li>
+        <li>الطريقة الصحيحة للتخلص من المادة.</li>
+        <li>الطريقة الصحيحة لنقل المادة.</li>
+    </ul>
+    
+    <hr>
+
+    <h2>نظام تمييز خطورة المواد (NFPA 704)</h2>
+    <p>يتم تمييز خطورة المواد حسب معيار الرابطة الوطنية للوقاية من الحرائق <strong>(National Fire Protection Association)</strong> باستخدام ملصق (Label) على شكل ماسة مقسمة لأربعة ألوان، حيث تتراوح قيم درجات الخطورة فيها من <strong>0 (لا خطر / مادة عادية)</strong> إلى <strong>4 (خطير جداً)</strong>.</p>
+
+    <h3 class="bg-red">اللون الأحمر: القابلية على الاشتعال</h3>
+    <table>
+        <thead>
+            <tr>
+                <th class="grade-cell">الدرجة</th>
+                <th>الوصف والخطورة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="grade-cell">4</td>
+                <td>يتبخر كاملاً وبسرعة تحت درجة الحرارة والضغط الجوي العاديين، أو أنه يتشتت بسهولة في الهواء وسيحترق بسهولة مثل: <span class="example">(البروبان)</span>، وتكون نقطة الوميض أقل من 23°م.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">3</td>
+                <td>تشمل المواد الصلبة والسائلة التي يمكن أن تلتهب تحت درجات الحرارة المحيطة (23°م و 38°م) مثل: <span class="example">(البنزين)</span> وتكون نقطة الوميض بين 23-38°م.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">2</td>
+                <td>يجب تسخين المادة تسخيناً معتدلاً أو أن تتعرض إلى درجة حرارة مرتفعة عن الوسط المحيط قبل أن تلتهب مثل: <span class="example">(وقود الديزل)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">1</td>
+                <td>يجب تسخين المادة حتى تلتهب مثل: <span class="example">(زيت الصويا)</span>. نقطة الوميض فوق 93°م.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">0</td>
+                <td>لا يشتعل.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="bg-blue">اللون الأزرق: مخاطر الصحة</h3>
+    <table>
+        <thead>
+            <tr>
+                <th class="grade-cell">الدرجة</th>
+                <th>الوصف والخطورة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="grade-cell">4</td>
+                <td>قد يسبب التعرض القصير جداً للمادة إلى الموت أو إلى ضرر مادي دائم مثل: <span class="example">(سيانيد الهيدروجين، الفوسفين)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">3</td>
+                <td>قد يسبب التعرض القصير إلى ضرر كبير أو متوسط مؤقت أو دائم مثل: <span class="example">(مثل غاز الكلور)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">2</td>
+                <td>قد يسبب التعرض الكثيف أو المستمر ولكن غير المزمن إلى فقدان مؤقت للقدرة أو ضرر دائم محتمل مثل: <span class="example">(إثير أثيلي)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">1</td>
+                <td>قد يسبب التعرض لهذه المادة إلى التهيج مع أضرار متبقية قليلة مثل: <span class="example">(أسيتون)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">0</td>
+                <td>لا تشكل هذه المادة أي ضرر على الصحة، ولا ضرورة لأي محاذير وقائية مثل: <span class="example">(لانولين)</span>.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="bg-yellow">اللون الأصفر: لا استقرارية / تفاعلية</h3>
+    <table>
+        <thead>
+            <tr>
+                <th class="grade-cell">الدرجة</th>
+                <th>الوصف والخطورة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="grade-cell">4</td>
+                <td>يمكن للمادة بسهولة أن تنفجر انفجاراً صاعقاً عند درجات الحرارة والضغط العاديين مثل: <span class="example">(نيتروغليسرين)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">3</td>
+                <td>يمكن للمادة أن تنفجر انفجاراً صاعقاً ولكن تحتاج إلى مصدر أولي للانفجار، ويجب تسخين المادة في مكان محصور قبل التفجير الأولي، أو يتفاعل انفجارياً مع الماء، أو ستنفجر إذا تعرضت لصدمة قاسية مثل: <span class="example">(نترات الأمونيوم)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">2</td>
+                <td>تتعرض المادة لتغيير كيميائي عنيف عند درجات الحرارة والضغط العاليين، أو تتفاعل بعنف مع الماء، أو قد تشكل مع الماء مزيجاً متفجراً مثل: <span class="example">(فوسفور، بوتاسيوم، صوديوم)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">1</td>
+                <td>مادة مستقرة عادة، ولكنها تصبح غير مستقرة عن درجات الحرارة والضغط العاليين مثل: <span class="example">(بروبيلين)</span>.</td>
+            </tr>
+            <tr>
+                <td class="grade-cell">0</td>
+                <td>مادة مستقرة عادة، حتى عند التعرض للنار، ولا تتفاعل مع الماء مثل: <span class="example">(هيليوم)</span>.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="bg-white">اللون الأبيض: المخاطر الخاصة</h3>
+    <p>يتضمن هذا القسم رموزاً مخصصة تصف تفاعلات أو مخاطر معينة للمادة:</p>
+    <ul>
+        <li><strong><s>W</s> :</strong> تتفاعل المادة مع الماء بطريقة غير عادية أو خطيرة مثل: <span class="example">(السيزيوم، الصوديوم)</span>.</li>
+        <li><strong>OXY :</strong> مادة مؤكسدة مثل: <span class="example">(فوق كلورات البوتاسيوم، ونترات الأمونيوم، وفوق أكسيد الهيدروجين)</span>.</li>
+        <li><strong>COR :</strong> مادة كاوية.</li>
+        <li><strong>ACID :</strong> مادة حامضية.</li>
+        <li><strong>ALK :</strong> مادة قلوية.</li>
+        <li><strong>RADIATION HAZARD :</strong> مخاطر إشعاع (☢️).</li>
+    </ul>
+
+    <div class="note-box">
+        <strong>ملاحظة هامة:</strong> يجب الالتزام بالتعليمات المذكورة أعلاه لضمان سلامة جميع العاملين والمرضى داخل المنشأة الطبية.
+    </div>
+
+</div>
+
+</body>
+</html>
