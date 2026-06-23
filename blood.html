@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستشفى صيدناوي - دليل التبرع بالدم</title>
+    <!-- استدعاء خط Cairo للشعار والنصوص لتوحيد الهوية البصرية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #c0392b;
+            --secondary-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --text-color: #333;
+            --logo-blue: #2b54b4; /* لون الشعار الأصلي */
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.8;
+        }
+
+        /* هيدر الشعار بالخلفية السوداء ليطابق تصميم اللوجو الفعلي */
+        header {
+            background-color: #000000;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-bottom: 4px solid var(--primary-color);
+        }
+
+        /* حاوية الشعار المكتوب بالـ CSS */
+        .logo-container {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            max-width: 280px;
+        }
+
+        .logo-sub {
+            color: var(--logo-blue);
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: -5px;
+            margin-left: -50px; /* إزاحة كلمة مستشفى لليسا قليلاً مثل الشعار */
+            text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.8), 
+                         -0.5px -0.5px 0px rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-main {
+            color: var(--logo-blue);
+            font-size: 3.8rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -1px;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.9), 
+                         -0.5px -0.5px 0px rgba(255, 255, 255, 0.1);
+        }
+
+        /* الحاوية الرئيسية للمحتوى */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .intro {
+            font-size: 1.15rem;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+            margin-top: 35px;
+            font-weight: 700;
+        }
+
+        h3 {
+            color: var(--primary-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-right: 4px solid var(--primary-color);
+            border-radius: 4px;
+        }
+
+        li strong {
+            color: #000;
+        }
+
+        .note-box {
+            background-color: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 30px;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 40px 0 20px 0;
+        }
+
+        /* قسم الفيديو */
+        .video-container {
+            text-align: center;
+            margin-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 30px;
+        }
+
+        video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر مدمج داخله شعار الـ HTML النصي الذكي بدلاً من الصورة القديمة -->
+    <header>
+        <div class="logo-container">
+            <div class="logo-sub">مستشفى</div>
+            <div class="logo-main">صيدناوي</div>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <h1>رحلة إنقاذ حياة.. دليل التبرع بالدم خطوة بخطوة 🩸</h1>
+        
+        <p class="intro">
+            عمرك فكرت إن مشوار بسيط مدته كام دقيقة ممكن يكون سبب في إنقاذ حياة 3 أشخاص؟ التبرع بالدم مش مجرد عمل إنساني، ده طوق نجاة لمرضى كتير، وفي نفس الوقت تجديد وصحة لجسدك. <br>
+            لو بتفكر تتبرع ومش عارف الخطوات، إحنا جمعنالك كل حاجة بالتفصيل عشان تطمن وتعرف رحلتك جوه المركز بتمشي إزاي:
+        </p>
+
+        <!-- القسم الأول -->
+        <h2>1️⃣ هل أنت مؤهل للتبرع بالدم؟ 🤔</h2>
+        <p>قبل ما تشرفنا، تقدر تراجع الشروط البسيطة دي عشان تطمن إنك مؤهل:</p>
+        <ul>
+            <li><strong>الصحة العامة:</strong> تكون حاسس إنك معافى وبصحة جيدة النهارده.</li>
+            <li><strong>التاريخ المرضي:</strong> لا تعاني من أمراض مزمنة غير منضبطة (مثل أمراض القلب الشديدة، الفشل الكلوي، أو السكري اللي بيتعالج بالإنسولين).</li>
+            <li><strong>الأمراض المعدية:</strong> خلو الجسم من الأمراض الفيروسية أو المعدية (مثل الالتهاب الكبدي الوبائي، أو الملاريا الحديثة).</li>
+            <li><strong>السلامة مؤخراً:</strong> ميكنش عدي عليك أقل من سنة على إجراء عملية جراحية كبيرة، أو عمل وشم (تاتو)، أو حجامة.</li>
+            <li><strong>بالنسبة للسيدات:</strong> ألا تكوني حاملاً أو مرضعة في الوقت الحالي.</li>
+        </ul>
+
+        <!-- القسم الثاني -->
+        <h2>2️⃣ خطواتك جوه المركز (خطوة بخطوة) 🚶‍♂️</h2>
+        <p>عند وصولك لمركز التبرع، الرحلة مقسمة لـ 3 مراحل سريعة ومريحة جداً:</p>
+
+        <h3>أولاً: الاستقبال والترحيب بك 📋</h3>
+        <ul>
+            <li><strong>التحقق الإلكتروني:</strong> أول ما بتنورنا، بنعمل مراجعة سريعة على السيستم الخاص بوزارة الصحة للتأكد من جاهزيتك وأهليتك للتبرع.</li>
+            <li><strong>استمارة التبرع:</strong> بتملى استمارة ورقية بسيطة فيها أسئلة بتطمن على حالتك الصحية، وفريقنا الطبي دايماً جنبك لو في أي سؤال مش واضح.</li>
+            <li><strong>دردشة طبية:</strong> بيقعد معاك الطبيب في مقابلة شخصية سريعة يسألك كام سؤال شفهي للاطمئنان عليك.</li>
+        </ul>
+
+        <h3>ثانياً: الاطمئنان على صحتك (الفحص الطبي) 🩺</h3>
+        <p>قبل ما نتبرع، إحنا بنعتبرك المريض الأول ولأزم نطمن على مؤشراتك الحيوية بفحص مجاني وسريع بيشمل:</p>
+        <ul>
+            <li><strong>نسبة الهيموجلوبين:</strong> قياس نسبة الهيموجلوبين في الدم (عشان نتأكد إن مفيش أنيميا حادة).</li>
+            <li><strong>العلامات الحيوية:</strong> قياس ضغط الدم والنبض للتأكد إنهم في المعدلات الطبيعية.</li>
+            <li><strong>الوزن والكتلة:</strong> التأكد من مناسبة الوزن والطول للتبرع بأمان.</li>
+        </ul>
+
+        <h3>ثالثاً: وقت العطاء (التبرع والراحة) 💉</h3>
+        <ul>
+            <li><strong>تسجيلك كمتبرع معتمد:</strong> أول ما نلاقي كل فحوصاتك سليمة ومؤشراتك ممتازة بنسبة 100%، بنسجل بياناتك فوراً على النظام كمتبرع بطل.</li>
+            <li><strong>عملية التبرع:</strong> بتتفضل بالدخول للغرفة المخصصة والمعقمة بالكامل، وبتبدأ عملية سحب الدم أو البلازما في أجواء مريحة ومريحة جداً.</li>
+            <li><strong>استراحة:</strong> بعد ما بتخلص، بتسترخي على الكرسي لمدة دقيقتين أو تلاتة بس، تشرب العصير بتاعك وتاكل حاجة خفيفة عشان تستعيد كامل نشاطك ووعيك، وتمشي بألف سلامة.</li>
+        </ul>
+
+        <!-- معلومة تهمك -->
+        <div class="note-box">
+            <strong>💡 معلومة تهمك:</strong><br>
+            كل الأدوات المستخدمة في عملية التبرع معقمة وتُستخدم لمرة واحدة فقط لكل متبرع، سلامتك هي أولويتنا الأولى والأخيرة.
+        </div>
+
+        <p class="footer-text">
+            خطوات بسيطة.. تستغرق دقائق معدودة.. لكنها بتكتب عمر جديد لإنسان! ❤️<br>
+            شرفنا بالزيارة، وتذكر دايماً: تبرعك حياة.
+        </p>
+
+        <!-- قسم الفيديو المخصص للعمل بشكل مستمر وتلقائي -->
+        <div class="video-container">
+            <video autoplay muted loop playsinline controls>
+                <source src="XiaoYing_Video_1782239873036_HD.mp4" type="video/mp4">
+                متصفحك لا يدعم تشغيل الفيديو.
+            </video>
+        </div>
+
+    </div>
+
+</body>
+</html>
