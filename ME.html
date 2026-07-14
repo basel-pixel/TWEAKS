@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أدلة التشغيل - مستشفى صيدناوي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0056b3;
+            --dark-bg: #1a1a1a;
+            --light-grey: #f4f5f7;
+            --text-dark: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-grey);
+            color: var(--text-dark);
+        }
+        
+        /* تنسيقات الهيدر */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background-color: white;
+            padding: 20px;
+            border-bottom: 5px solid var(--primary-blue);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .hospital-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+        }
+        .header-text-container {
+            text-align: right; /* توسيط النص */
+        }
+        .hospital-text {
+            font-size: 16px;
+            color: var(--primary-blue);
+            margin: 0 0 5px 0; /* مسافة سفلية 5 بيكسل */
+            line-height: 1.2;
+            font-weight: bold;
+        }
+        .sidnawy-text {
+            font-size: 38px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin: 0 0 12px 0; /* مسافة سفلية 12 بيكسل */
+            line-height: 1;
+            font-family: 'Cairo', sans-serif;
+        }
+        .dept-title {
+            color: #7f8c8d;
+            font-size: 15px;
+            margin: 0 0 8px 0; /* مسافة سفلية 8 بيكسل */
+            font-weight: bold;
+        }
+        .page-title {
+            color: var(--text-dark);
+            font-size: 20px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        /* تنسيقات محتوى الصفحة */
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            padding: 20px 0;
+        }
+        .sidebar button {
+            width: 100%;
+            background: none;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            text-align: right;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-bottom: 1px solid #34495e;
+        }
+        .sidebar button:hover, .sidebar button.active {
+            background-color: var(--primary-blue);
+        }
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .device-info {
+            display: none;
+        }
+        .device-info.active {
+            display: block;
+        }
+        h2 {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-grey);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        ul {
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .warning {
+            background-color: #ffeaa7;
+            padding: 15px;
+            border-right: 5px solid #d63031;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="Picture1.png" alt="شعار المستشفى" class="hospital-logo" onerror="this.style.display='none'">
+        <div class="header-text-container">
+            <p class="hospital-text">مستشفى</p>
+            <div class="sidnawy-text">صيدناوي</div>
+            <div class="dept-title">فريق الجودة وسلامة المرضى</div>
+            <div class="page-title">أدلة تشغيل الأجهزة الطبية</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <button class="tab-btn active" onclick="openTab('ecg')">جهاز رسم القلب (ECG)</button>
+            <button class="tab-btn" onclick="openTab('vent')">جهاز التنفس الصناعي</button>
+            <button class="tab-btn" onclick="openTab('dc')">جهاز الصدمات</button> 
+            <button class="tab-btn" onclick="openTab('dctest')">عمل فحص لجهاز الصدمات "فيلبس"</button>  
+            <button class="tab-btn" onclick="openTab('ct')">جهاز الاشعة المقطعية</button>
+            <button class="tab-btn" onclick="openTab('sonar')">الموجات فوق الصوتية "سونار"</button>
+            <button class="tab-btn" onclick="openTab('suc')">جهاز شفط السوائل</button>
+            <button class="tab-btn" onclick="openTab('c-arm')">جهاز الاشعة سي ارم</button>
+            <button class="tab-btn" onclick="openTab('mon')">جهاز المونيتور</button>
+            <button class="tab-btn" onclick="openTab('infpump')">جهاز مضحة المحاليل</button>
+            <button class="tab-btn" onclick="openTab('diathe')">جهاز الكي الجراحي دياثرمي</button>      
+        </div>
+
+        <div class="content">
+            <div id="ecg" class="device-info active">
+                <h2>طريقة تشغيل جهاز رسم القلب (ECG)</h2>
+                <ul>
+                    <li>تأكد من توصيل كابل الباور بالتيار الكهربي.</li>
+                    <li>الضغط على مفتاح الباور الخاص بالجهاز لعدة ثوان.</li>
+                    <li>توصيل الوصلات أو الأقطاب الخاصة بالجهاز.</li>
+                    <li>توصيل الأقطاب على المريض وفقا للتوصيل المطلوب والأماكن المخصصة له على جسم الحالة.</li>
+                    <li>التأكد من عدم وجود أي معادن مع المريض أثناء التوصيل.</li>
+                    <li>تسجيل بيانات المريض بالكامل على الجهاز (التاريخ – الوقت – الاسم – السن).</li>
+                    <li>عند ظهور الرسم البياني لعضلة القلب على شاشة الجهاز يتم الضغط على مفتاح الخاص بالطباعة.</li>
+                    <li>عند الانتهاء من استخدام الجهاز إزالة الوصلات من الجهاز وفصل الجهاز من التيار الكهربي.</li>
+                </ul>
+                <div class="warning">
+                    <strong>تعليمات هامة:</strong>
+                    عند تنظيف الجهاز أو مسحه يجب تحت إشراف رئيس القسم المسئول وعدم سكب أي سوائل على الجهاز.
+                </div>
+            </div>
+
+            <div id="vent" class="device-info">
+                <h2>طريقة تشغيل جهاز التنفس الصناعي</h2>
+                <ul>
+                    <li>توصيل كابل الباور الخاص بالجهاز والمبخر بالتيار الكهربي.</li>
+                    <li>وضع كلا من وصلة الأكسجين والهواء (O2 –Air) بالمخارج الخاصة بشبكة الغازات والتأكد من توصيلها جيدا.</li>
+                    <li>الضغط على مفتاح الباور الخاص بالجهاز حتى يتم تشغيل الجهاز.</li>
+                    <li>توصيل الوصلات الخاصة بالمريض من الجهاز بكلا المخرجين للجهاز (Inspiration – Expiration).</li>
+                    <li>توصيل وصلة (Inspiration) من الجهاز إلى المبخر (Humidifier) وضبط درجة حرارة المرطب إلى (37').</li>
+                    <li>وضع كمية مناسبة من الماء المقطر إلى الحد المسموح به.</li>
+                    <li>أخذ وصلة من مخرج (Expiration) والمرطب وتوصيلهما بوصلة (Water Trap) ثم إلى وصلة (Y Connection) وتوصيلها بالماسك الخاص بالمريض.</li>
+                    <li>ضبط الإعدادات الخاصة بعملية التنفس من الجهاز بالمريض (RR- VT – PEEP – MV – PIP – TI-…. ) وذلك طبقا للنسب التي يحددها الطبيب على حسب كل حالة.</li>
+                    <li>وضع الماسك للمريض مع مراعاة التشفيط للمريض إذا لزم الأمر حتى لا يعيق مجرى التنفس.</li>
+                    <li>التأكد من اختيار المود المناسب للمريض سواء كان adult أو neonate.</li>
+                    <li>عند الانتهاء من استخدام الجهاز إزالة الوصلات من الجهاز وفصل الجهاز من التيار الكهربي.</li>
+                </ul>
+                <div class="warning">
+                    <strong>تعليمات هامة:</strong><br>
+                    - عند تنظيف الجهاز أو مسحه يجب تحت إشراف رئيس القسم المسئول وعدم سكب أي سوائل على الجهاز.<br>
+                    - عند احتياج نقل الجهاز من مكان لآخر يجب أن يكون تحت إشراف الإدارة الهندسية الطبية.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabId) {
+            var contents = document.getElementsByClassName('device-info');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
+
+            var buttons = document.getElementsByClassName('tab-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
