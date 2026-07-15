@@ -81,7 +81,7 @@
             width: 300px;
             background-color: #2c3e50;
             padding: 20px 0;
-            flex-shrink: 0; /* لمنع تقلص القائمة */
+            flex-shrink: 0; 
         }
         .sidebar button {
             width: 100%;
@@ -111,7 +111,7 @@
             animation: fadeIn 0.4s ease-in-out;
         }
         
-        /* تأثير ظهور سلس عند التبديل بين الأجهزة */
+        /* تأثير ظهور سلس */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -135,7 +135,24 @@
             border-radius: 4px;
         }
 
-        /* تحسينات للشاشات الصغيرة (الهواتف المحمولة) */
+        /* تنسيقات الصور */
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .device-image {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+        /* تحسينات للشاشات الصغيرة */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -148,7 +165,7 @@
                 padding: 0;
             }
             .sidebar button {
-                width: 50%; /* عرض الأزرار بجانب بعضها على الموبايل */
+                width: 50%;
                 text-align: center;
                 font-size: 14px;
             }
@@ -158,7 +175,7 @@
         }
         @media (max-width: 480px) {
             .sidebar button {
-                width: 100%; /* زر كامل العرض للشاشات الصغيرة جداً */
+                width: 100%; 
             }
         }
     </style>
@@ -176,6 +193,7 @@
     </header>
 
     <div class="container">
+        <!-- القائمة الجانبية -->
         <div class="sidebar">
             <button class="tab-btn active" onclick="openTab(event, 'ecg')">جهاز رسم القلب (ECG)</button>
             <button class="tab-btn" onclick="openTab(event, 'vent')">جهاز التنفس الصناعي</button>
@@ -192,8 +210,14 @@
 
         <div class="content">
             
+            <!-- جهاز رسم القلب -->
             <div id="ecg" class="device-info active">
                 <h2>طريقة تشغيل جهاز رسم القلب (ECG)</h2>
+                
+                <div class="image-container">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D8%B1%D8%B3%D9%85%20%D8%A7%D9%84%D9%82%D9%84%D8%A8.jpeg" alt="جهاز رسم القلب" class="device-image">
+                </div>
+
                 <ul>
                     <li>تأكد من توصيل كابل الباور بالتيار الكهربي.</li>
                     <li>الضغط على مفتاح الباور الخاص بالجهاز لعدة ثوان.</li>
@@ -210,6 +234,7 @@
                 </div>
             </div>
 
+            <!-- جهاز التنفس الصناعي -->
             <div id="vent" class="device-info">
                 <h2>طريقة تشغيل جهاز التنفس الصناعي</h2>
                 <ul>
@@ -232,8 +257,14 @@
                 </div>
             </div>
             
+            <!-- جهاز الصدمات -->
             <div id="dc" class="device-info">
                 <h2>طريقة تشغيل جهاز الصدمات</h2>
+                
+                <div class="image-container">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D8%A7%D9%84%D8%B5%D8%AF%D9%85%D8%A7%D8%AA.jpeg" alt="جهاز الصدمات" class="device-image">
+                </div>
+
                 <ul>
                     <li>تأكد من توصيل كابل الباور بالتيار الكهربي.</li>
                     <li>الضغط علي مفتاح التشغيل والتأكد من شحن البطارية عن طريق المؤشر الخاص بها.</li>
@@ -253,8 +284,14 @@
                 </div>
             </div>
 
+            <!-- فحص جهاز الصدمات فيليبس -->
             <div id="dctest" class="device-info">
                 <h2>طريقة عمل فحص TEST لجهاز صدمات PHILIPS قبل التشغيل</h2>
+                
+                <div class="image-container">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D9%81%D9%8A%D9%84%D8%A8%D8%B3.png" alt="جهاز صدمات فيليبس" class="device-image">
+                </div>
+
                 <ul>
                     <li>تأكد من أن الجهاز مشحون قبل عمل اختبار للجهاز بشكل جيد.</li>
                     <li>فصل الجهاز من التيار الكهربي عند عمل الفحص وبعد الانتهاء نعيده مرة أخري.</li>
@@ -272,6 +309,7 @@
                 </ul>
             </div>
         
+            <!-- جهاز الأشعة المقطعية -->
             <div id="ct" class="device-info">
                 <h2>طريقة تشغيل جهاز الأشعة المقطعية (CT)</h2>
                 <ul>
@@ -291,6 +329,7 @@
                 </div>
             </div>
 
+            <!-- جهاز السونار -->
             <div id="sonar" class="device-info">
                 <h2>الموجات فوق الصوتية "سونار"</h2>
                 <ul>
@@ -309,6 +348,7 @@
                 </div>
             </div>
 
+            <!-- جهاز شفط السوائل -->
             <div id="suc" class="device-info">
                 <h2>جهاز شفط السوائل</h2>
                 <ul>
@@ -328,6 +368,7 @@
                 </div>
             </div>
 
+            <!-- جهاز سي آرم -->
             <div id="c-arm" class="device-info">
                 <h2>جهاز الأشعة سي آرم (C-Arm)</h2>
                 <ul>
@@ -343,8 +384,15 @@
                 </ul>
             </div>  
 
+            <!-- جهاز المونيتور -->
             <div id="mon" class="device-info">
                 <h2>طريقة التشغيل لجهاز المونيتور (Monitor)</h2>
+                
+                <div class="image-container">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D8%AA%D8%B4%D8%BA%D9%8A%D9%84%20%D9%85%D9%88%D9%86%D9%8A%D8%AA%D9%88%D8%B1.jpeg" alt="تشغيل المونيتور" class="device-image">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D9%82%D8%B1%D8%A7%D9%8A%D8%A9%20%D8%A7%D9%84%D9%85%D9%88%D9%86%D9%8A%D8%AA%D9%88%D8%B1.jpeg" alt="قراية المونيتور" class="device-image">
+                </div>
+
                 <ul>
                     <li>تأكد من توصيل كابل الباور بالتيار الكهربي.</li>
                     <li>الضغط علي مفتاح الباور الخاص بالجهاز لعدة ثوان.</li>
@@ -362,6 +410,7 @@
                 </div>
             </div> 
 
+            <!-- مضخة المحاليل -->
             <div id="infpump" class="device-info">
                 <h2>طريقة تشغيل مضخة المحاليل</h2>
                 <ul>
@@ -380,8 +429,14 @@
                 </div>
             </div>
           
+            <!-- جهاز الدياثرمي -->
             <div id="diathe" class="device-info">
                 <h2>طريقة تشغيل جهاز الدياثرمي (Diathermy)</h2>
+                
+                <div class="image-container">
+                    <img src="https://basel-pixel.github.io/TWEAKS/MEpics/%D8%AF%D9%8A%D8%A7%D8%AB%D8%B1%D9%85%D9%8A.jpeg" alt="جهاز الدياثرمي" class="device-image">
+                </div>
+
                 <h3 style="color: var(--primary-blue); margin-top: 20px;">خطوات التشغيل الأساسية:</h3>
                 <ul>
                     <li><strong>تشغيل الجهاز (Switch on the device):</strong> قم بتشغيل الجهاز للبدء.</li>
@@ -409,21 +464,21 @@
                 </div>
             </div> 
 
-        </div> </div> <script>
+        </div> 
+    </div> 
+
+    <script>
         function openTab(evt, tabId) {
-            // إخفاء جميع الأجهزة
             var contents = document.getElementsByClassName('device-info');
             for (var i = 0; i < contents.length; i++) {
                 contents[i].classList.remove('active');
             }
 
-            // إزالة كلاس active من جميع الأزرار
             var buttons = document.getElementsByClassName('tab-btn');
             for (var i = 0; i < buttons.length; i++) {
                 buttons[i].classList.remove('active');
             }
 
-            // إظهار الجهاز المطلوب وإضافة active للزر الذي تم النقر عليه
             document.getElementById(tabId).classList.add('active');
             evt.currentTarget.classList.add('active');
         }
