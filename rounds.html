@@ -77,7 +77,6 @@
             font-weight: 700;
         }
         
-        /* جعل خانة التاريخ العلوي غير قابلة للتعديل وبشكل مميز */
         #input-date {
             background-color: #f1f5f9;
             cursor: not-allowed;
@@ -199,7 +198,8 @@
 </head>
 <body>
     
-    <button class="btn print-btn no-print" onclick="window.print()">حفظ الشيت 💾</button>
+    <!-- زر الحفظ يستدعي دالة الطباعة المخصصة -->
+    <button class="btn print-btn no-print" onclick="customPrint()">حفظ الشيت 💾</button>
 
     <div id="content-to-print">
         <div class="hospital-logo">
@@ -209,7 +209,6 @@
         <h2>شيت مرور المرضى</h2>
 
         <div class="header-info">
-            <!-- تم إضافة خاصية readonly لمنع التعديل -->
             <span>التاريخ: <input type="text" id="input-date" readonly></span>
             <span>القسم: <input type="text" id="input-dept"></span>
             <span>الطبيب: <input type="text" id="input-doc"></span>
@@ -259,13 +258,26 @@
             addRow();
         }
 
-        // تعيين تاريخ اليوم تلقائياً وبشكل غير قابل للتعديل في خانة التاريخ العلوية
+        // تعيين تاريخ اليوم تلقائياً وبشكل غير قابل للتعديل
         const dateInput = document.getElementById('input-date');
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
-        dateInput.value = `${yyyy}-${mm}-${dd}`;
+        const currentDate = `${yyyy}-${mm}-${dd}`;
+        dateInput.value = currentDate;
+
+        // دالة مخصصة لضبط اسم ملف الـ PDF بناءً على القسم والتاريخ عند الضغط على حفظ
+        function customPrint() {
+            const deptInput = document.getElementById('input-dept').value.trim();
+            const deptName = deptInput ? deptInput : "عام";
+            
+            // تغيير عنوان الصفحة مؤقتاً ليتخذ المتصفح هذا العنوان كاسم افتراضي لملف الـ PDF
+            document.title = `شيت_مرور_${deptName}_${currentDate}`;
+            
+            // فتح نافذة الطباعة والحفظ
+            window.print();
+        }
     </script>
 </body>
 </html>
