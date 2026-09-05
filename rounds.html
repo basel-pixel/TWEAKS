@@ -11,7 +11,7 @@
             font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 20px 15px;
-            background-color: #eef2f5; /* لون خلفية رمادي/أزرق مريح للعين */
+            background-color: #eef2f5; 
             color: #1e293b;
         }
         
@@ -20,9 +20,10 @@
             background-color: #ffffff;
             padding: 25px 15px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* ظل ناعم يعطي تأثير الورقة 3D */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
             margin-bottom: 25px;
             border: 1px solid #e2e8f0;
+            overflow: hidden; /* لمنع أي خروج عن الإطار الأبيض */
         }
 
         .hospital-logo {
@@ -48,7 +49,9 @@
             margin-bottom: 25px;
             font-weight: 600;
             padding-bottom: 15px;
-            border-bottom: 2px dashed #cbd5e1; /* خط فاصل جمالي */
+            border-bottom: 2px dashed #cbd5e1; 
+            flex-wrap: wrap; /* السماح بنزول العناصر إذا ضاقت الشاشة */
+            gap: 10px;
         }
         .header-info > span {
             display: flex;
@@ -80,12 +83,19 @@
             position: relative;
         }
 
+        /* خاصية التمرير للجدول على الهواتف */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         table {
             width: 100%;
+            min-width: 750px; /* إجبار الجدول على أخذ مساحة مناسبة لمنع انكماش الأعمدة */
             border-collapse: collapse;
             margin-bottom: 10px;
             border-radius: 8px;
-            overflow: hidden; /* لتطبيق الحواف الدائرية على الجدول */
         }
         th, td {
             border: 1px solid #cbd5e1;
@@ -94,7 +104,7 @@
             font-size: 14px;
         }
         th {
-            background-color: #f8fafc; /* لون أزرق ثلجي خفيف جداً للهيدر */
+            background-color: #f8fafc; 
             color: #334155;
             font-weight: 700;
         }
@@ -137,7 +147,6 @@
             -webkit-appearance: none;
         }
 
-        /* تنسيق الأزرار لتكون أكثر عصرية */
         .btn {
             color: #fff;
             border: none;
@@ -164,7 +173,7 @@
             margin-bottom: 30px; 
         }
         
-        /* إعدادات الطباعة (إلغاء الألوان والظلال لطباعة بيضاء نقية) */
+        /* إعدادات الطباعة */
         @media print {
             .no-print { display: none !important; }
             body { background-color: #fff; margin: 0; padding: 0; font-size: 14px; }
@@ -174,7 +183,10 @@
                 box-shadow: none; 
                 border: none;
                 margin: 0;
+                overflow: visible; /* السماح بعرض كل شيء في الطباعة */
             }
+            .table-responsive { overflow-x: visible !important; } /* إلغاء التمرير عند الطباعة */
+            table { min-width: 100%; }
             .header-info { border-bottom: none; }
             th { background-color: #e2e8f0 !important; color: #000; -webkit-print-color-adjust: exact; }
             th, td { border: 1px solid #000; }
@@ -199,21 +211,24 @@
             <span>الطبيب: <input type="text" id="input-doc"></span>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th width="5%">م</th>
-                    <th width="15%">اسم المريض</th>
-                    <th width="12%">تاريخ الدخول</th>
-                    <th width="8%">الدور</th>
-                    <th width="15%">التشخيص</th>
-                    <th width="20%">الخطة العلاجية</th>
-                    <th width="25%">الملاحظات</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-            </tbody>
-        </table>
+        <!-- تم تغليف الجدول بـ div مخصص للتمرير -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="5%">م</th>
+                        <th width="15%">اسم المريض</th>
+                        <th width="12%">تاريخ الدخول</th>
+                        <th width="8%">الدور</th>
+                        <th width="15%">التشخيص</th>
+                        <th width="20%">الخطة العلاجية</th>
+                        <th width="25%">الملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <button class="btn add-btn no-print" onclick="addRow()">+ إضافة مريض</button>
