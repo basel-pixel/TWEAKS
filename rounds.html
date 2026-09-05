@@ -6,16 +6,19 @@
     <title>شيت مرور المرضى</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* إعدادات الشاشة الأساسية (الخلفية والألوان) */
+        /* إعدادات الشاشة الأساسية */
+        :root {
+            color-scheme: light; /* إجبار المتصفح على الوضع الفاتح لمنع اختفاء النص */
+        }
+        
         body {
             font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 20px 15px;
             background-color: #eef2f5; 
-            color: #1e293b;
+            color: #000;
         }
         
-        /* تصميم الورقة البيضاء لتبرز عن الخلفية */
         #content-to-print {
             background-color: #ffffff;
             padding: 25px 15px;
@@ -23,7 +26,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
             margin-bottom: 25px;
             border: 1px solid #e2e8f0;
-            overflow: hidden; /* لمنع أي خروج عن الإطار الأبيض */
+            overflow: hidden; 
         }
 
         .hospital-logo {
@@ -50,7 +53,7 @@
             font-weight: 600;
             padding-bottom: 15px;
             border-bottom: 2px dashed #cbd5e1; 
-            flex-wrap: wrap; /* السماح بنزول العناصر إذا ضاقت الشاشة */
+            flex-wrap: wrap; 
             gap: 10px;
         }
         .header-info > span {
@@ -58,7 +61,7 @@
             align-items: center;
             white-space: nowrap;
             font-size: 14px;
-            color: #475569;
+            color: #000;
         }
         .header-info input {
             border: none;
@@ -70,7 +73,7 @@
             width: 80px;
             margin-right: 5px;
             outline: none;
-            color: #0f172a;
+            color: #000; /* لون أسود صريح */
             font-weight: 700;
             transition: border-color 0.3s ease;
         }
@@ -83,7 +86,6 @@
             position: relative;
         }
 
-        /* خاصية التمرير للجدول على الهواتف */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -92,7 +94,7 @@
 
         table {
             width: 100%;
-            min-width: 750px; /* إجبار الجدول على أخذ مساحة مناسبة لمنع انكماش الأعمدة */
+            min-width: 750px; 
             border-collapse: collapse;
             margin-bottom: 10px;
             border-radius: 8px;
@@ -102,16 +104,18 @@
             padding: 10px 6px;
             text-align: center;
             font-size: 14px;
+            color: #000; /* إجبار النص على اللون الأسود */
         }
         th {
             background-color: #f8fafc; 
-            color: #334155;
+            color: #000;
             font-weight: 700;
         }
         td[contenteditable="true"]:focus {
             background-color: #eff6ff;
             outline: 2px solid #3b82f6;
             border-radius: 4px;
+            color: #000; /* إجبار النص على اللون الأسود أثناء الكتابة */
         }
         
         .table-date-input {
@@ -128,6 +132,7 @@
             appearance: none;
             -webkit-appearance: none;
             font-weight: 600;
+            color: #000; /* إجبار التاريخ على اللون الأسود */
         }
 
         input[type="date"]::-webkit-calendar-picker-indicator {
@@ -183,20 +188,20 @@
                 box-shadow: none; 
                 border: none;
                 margin: 0;
-                overflow: visible; /* السماح بعرض كل شيء في الطباعة */
+                overflow: visible; 
             }
-            .table-responsive { overflow-x: visible !important; } /* إلغاء التمرير عند الطباعة */
+            .table-responsive { overflow-x: visible !important; } 
             table { min-width: 100%; }
             .header-info { border-bottom: none; }
             th { background-color: #e2e8f0 !important; color: #000; -webkit-print-color-adjust: exact; }
-            th, td { border: 1px solid #000; }
+            th, td { border: 1px solid #000; color: #000 !important; }
             @page { size: A4 landscape; margin: 1cm; }
         }
     </style>
 </head>
 <body>
     
-    <button class="btn print-btn no-print" حفظ الشيت</button>
+    <button class="btn print-btn no-print" حفظ الشيت 🖨️</button>
 
     <div id="content-to-print">
         <div class="hospital-logo">
@@ -211,7 +216,6 @@
             <span>الطبيب: <input type="text" id="input-doc"></span>
         </div>
 
-        <!-- تم تغليف الجدول بـ div مخصص للتمرير -->
         <div class="table-responsive">
             <table>
                 <thead>
@@ -258,3 +262,4 @@
     </script>
 </body>
 </html>
+
