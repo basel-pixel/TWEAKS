@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شيت مرور الاطباء </title>
+    <title>شيت مرور الأطباء</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* إعدادات الشاشة الأساسية */
@@ -267,7 +267,6 @@
                 <td contenteditable="true">${patientData.notes || ''}</td>
             `;
             
-            // إضافة مستمع لحفظ البيانات فور الكتابة في أي خانة بالصف
             tr.querySelectorAll('input, td[contenteditable="true"]').forEach(element => {
                 element.addEventListener('input', saveToLocalStorage);
             });
@@ -275,7 +274,6 @@
             tbody.appendChild(tr);
         }
 
-        // حفظ البيانات في ذاكرة المتصفح المحلية
         function saveToLocalStorage() {
             const data = {
                 dept: deptInput.value,
@@ -298,7 +296,6 @@
             localStorage.setItem('sidnawi_round_data', JSON.stringify(data));
         }
 
-        // استرجاع البيانات المحفوظة عند فتح الصفحة
         function loadFromLocalStorage() {
             const savedData = localStorage.getItem('sidnawi_round_data');
             if (savedData) {
@@ -312,13 +309,11 @@
                 }
             }
             
-            // لو مفيش بيانات محفوظة، افتح 15 صف فاضي كبداية
             for (let i = 1; i <= 15; i++) {
                 addRow();
             }
         }
 
-        // زر لمسح الشيت والبدء من جديد
         function clearData() {
             if (confirm('هل أنت متأكد من مسح جميع بيانات الشيت الحالي وبدء شيت جديد؟')) {
                 localStorage.removeItem('sidnawi_round_data');
@@ -326,17 +321,18 @@
             }
         }
 
-        // الاستماع لتغييرات حقول القسم والطبيب للحفظ الفوري
         deptInput.addEventListener('input', saveToLocalStorage);
         docInput.addEventListener('input', saveToLocalStorage);
 
-        // تشغيل دالة التحميل عند فتح الصفحة
         loadFromLocalStorage();
 
-        // دالة مخصصة لضبط اسم ملف الـ PDF بناءً على القسم والتاريخ
+        // دالة الحفظ المحدثة لإضافة (صباحي / مسائي) تلقائياً عند الساعة 2 ظهراً
         function customPrint() {
             const deptName = deptInput.value.trim() ? deptInput.value.trim() : "عام";
-            document.title = `شيت_مرور_${deptName}_${currentDate}`;
+            const currentHour = new Date().getHours();
+            const shiftType = currentHour >= 14 ? "مسائي" : "صباحي";
+            
+            document.title = `شيت_مرور_${deptName}_${shiftType}_${currentDate}`;
             window.print();
         }
     </script>
