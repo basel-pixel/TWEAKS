@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شيت مرور المرضى</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* إعدادات الشاشة الأساسية (الخلفية والألوان) */
+        body {
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding: 20px 15px;
+            background-color: #eef2f5; /* لون خلفية رمادي/أزرق مريح للعين */
+            color: #1e293b;
+        }
+        
+        /* تصميم الورقة البيضاء لتبرز عن الخلفية */
+        #content-to-print {
+            background-color: #ffffff;
+            padding: 25px 15px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* ظل ناعم يعطي تأثير الورقة 3D */
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .hospital-logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .hospital-logo img {
+            max-width: 140px;
+            height: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #cbd5e1; /* خط فاصل جمالي */
+        }
+        .header-info > span {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #475569;
+        }
+        .header-info input {
+            border: none;
+            border-bottom: 1px solid #94a3b8;
+            font-family: inherit;
+            font-size: 15px;
+            background: transparent;
+            text-align: center;
+            width: 80px;
+            margin-right: 5px;
+            outline: none;
+            color: #0f172a;
+            font-weight: 700;
+            transition: border-color 0.3s ease;
+        }
+        .header-info input:focus {
+            border-bottom: 2px solid #2563eb;
+        }
+        
+        #input-date {
+            width: 110px;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            overflow: hidden; /* لتطبيق الحواف الدائرية على الجدول */
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 10px 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f8fafc; /* لون أزرق ثلجي خفيف جداً للهيدر */
+            color: #334155;
+            font-weight: 700;
+        }
+        td[contenteditable="true"]:focus {
+            background-color: #eff6ff;
+            outline: 2px solid #3b82f6;
+            border-radius: 4px;
+        }
+        
+        .table-date-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 14px;
+            text-align: center;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            appearance: none;
+            -webkit-appearance: none;
+            font-weight: 600;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-clear-button {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        /* تنسيق الأزرار لتكون أكثر عصرية */
+        .btn {
+            color: #fff;
+            border: none;
+            padding: 14px 20px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 12px;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .print-btn { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .add-btn { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            margin-bottom: 30px; 
+        }
+        
+        /* إعدادات الطباعة (إلغاء الألوان والظلال لطباعة بيضاء نقية) */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: #fff; margin: 0; padding: 0; font-size: 14px; }
+            #content-to-print { 
+                padding: 0; 
+                border-radius: 0; 
+                box-shadow: none; 
+                border: none;
+                margin: 0;
+            }
+            .header-info { border-bottom: none; }
+            th { background-color: #e2e8f0 !important; color: #000; -webkit-print-color-adjust: exact; }
+            th, td { border: 1px solid #000; }
+            @page { size: A4 landscape; margin: 1cm; }
+        }
+    </style>
+</head>
+<body>
+    
+    <button class="btn print-btn no-print" onclick="window.print()">طباعة الشيت 🖨️</button>
+
+    <div id="content-to-print">
+        <div class="hospital-logo">
+            <img src="Picture1.png" alt="مستشفى صيدناوي">
+        </div>
+
+        <h2>شيت مرور المرضى</h2>
+
+        <div class="header-info">
+            <span>التاريخ: <input type="date" id="input-date"></span>
+            <span>القسم: <input type="text" id="input-dept"></span>
+            <span>الطبيب: <input type="text" id="input-doc"></span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="5%">م</th>
+                    <th width="15%">اسم المريض</th>
+                    <th width="12%">تاريخ الدخول</th>
+                    <th width="8%">الدور</th>
+                    <th width="15%">التشخيص</th>
+                    <th width="20%">الخطة العلاجية</th>
+                    <th width="25%">الملاحظات</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <button class="btn add-btn no-print" onclick="addRow()">+ إضافة مريض</button>
+
+    <script>
+        const tbody = document.getElementById('table-body');
+        let currentRowCount = 0;
+
+        function addRow() {
+            currentRowCount++;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${currentRowCount}</td>
+                <td contenteditable="true"></td>
+                <td><input type="date" class="table-date-input"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        for (let i = 1; i <= 15; i++) {
+            addRow();
+        }
+    </script>
+</body>
+</html>
