@@ -172,7 +172,12 @@
         .add-btn { 
             background: linear-gradient(135deg, #10b981, #059669); 
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            margin-bottom: 30px; 
+            margin-bottom: 15px; 
+        }
+        .clear-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            margin-bottom: 30px;
         }
         
         /* إعدادات الطباعة */
@@ -198,7 +203,6 @@
 </head>
 <body>
     
-    <!-- زر الحفظ يستدعي دالة الطباعة المخصصة -->
     <button class="btn print-btn no-print" onclick="customPrint()">حفظ الشيت 💾</button>
 
     <div id="content-to-print">
@@ -210,8 +214,8 @@
 
         <div class="header-info">
             <span>التاريخ: <input type="text" id="input-date" readonly></span>
-            <span>القسم: <input type="text" id="input-dept"></span>
-            <span>الطبيب: <input type="text" id="input-doc"></span>
+            <span>القسم: <input type="text" id="input-dept" placeholder="اكتب القسم"></span>
+            <span>الطبيب: <input type="text" id="input-doc" placeholder="اسم الطبيب"></span>
         </div>
 
         <div class="table-responsive">
@@ -234,32 +238,15 @@
     </div>
 
     <button class="btn add-btn no-print" onclick="addRow()">+ إضافة مريض</button>
+    <button class="btn clear-btn no-print" onclick="clearData()">مسح البيانات وبدء شيت جديد 🗑️</button>
 
     <script>
         const tbody = document.getElementById('table-body');
-        let currentRowCount = 0;
-
-        function addRow() {
-            currentRowCount++;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${currentRowCount}</td>
-                <td contenteditable="true"></td>
-                <td><input type="date" class="table-date-input"></td>
-                <td contenteditable="true"></td>
-                <td contenteditable="true"></td>
-                <td contenteditable="true"></td>
-                <td contenteditable="true"></td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        for (let i = 1; i <= 15; i++) {
-            addRow();
-        }
-
-        // تعيين تاريخ اليوم تلقائياً وبشكل غير قابل للتعديل
+        const deptInput = document.getElementById('input-dept');
+        const docInput = document.getElementById('input-doc');
         const dateInput = document.getElementById('input-date');
+
+        // تعيين تاريخ اليوم تلقائياً
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -267,15 +254,89 @@
         const currentDate = `${yyyy}-${mm}-${dd}`;
         dateInput.value = currentDate;
 
-        // دالة مخصصة لضبط اسم ملف الـ PDF بناءً على القسم والتاريخ عند الضغط على حفظ
+        function addRow(patientData = {}) {
+            const rowCount = tbody.rows.length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${rowCount}</td>
+                <td contenteditable="true">${patientData.name || ''}</td>
+                <td><input type="date" class="table-date-input" value="${patientData.date || ''}"></td>
+                <td contenteditable="true">${patientData.residence || ''}</td>
+                <td contenteditable="true">${patientData.diag || ''}</td>
+                <td contenteditable="true">${patientData.plan || ''}</td>
+                <td contenteditable="true">${patientData.notes || ''}</td>
+            `;
+            
+            // إضافة مستمع لحفظ البيانات فور الكتابة في أي خانة بالصف
+            tr.querySelectorAll('input, td[contenteditable="true"]').forEach(element => {
+                element.addEventListener('input', saveToLocalStorage);
+            });
+
+            tbody.appendChild(tr);
+        }
+
+        // حفظ البيانات في ذاكرة المتصفح المحلية
+        function saveToLocalStorage() {
+            const data = {
+                dept: deptInput.value,
+                doc: docInput.value,
+                rows: []
+            };
+
+            Array.from(tbody.rows).forEach(tr => {
+                const cells = tr.cells;
+                data.rows.push({
+                    name: cells[1].innerText.trim(),
+                    date: cells[2].querySelector('input').value,
+                    residence: cells[3].innerText.trim(),
+                    diag: cells[4].innerText.trim(),
+                    plan: cells[5].innerText.trim(),
+                    notes: cells[6].innerText.trim()
+                });
+            });
+
+            localStorage.setItem('sidnawi_round_data', JSON.stringify(data));
+        }
+
+        // استرجاع البيانات المحفوظة عند فتح الصفحة
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('sidnawi_round_data');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                deptInput.value = data.dept || '';
+                docInput.value = data.doc || '';
+                
+                if (data.rows && data.rows.length > 0) {
+                    data.rows.forEach(rowData => addRow(rowData));
+                    return;
+                }
+            }
+            
+            // لو مفيش بيانات محفوظة، افتح 15 صف فاضي كبداية
+            for (let i = 1; i <= 15; i++) {
+                addRow();
+            }
+        }
+
+        // زر لمسح الشيت والبدء من جديد
+        function clearData() {
+            if (confirm('هل أنت متأكد من مسح جميع بيانات الشيت الحالي وبدء شيت جديد؟')) {
+                localStorage.removeItem('sidnawi_round_data');
+                location.reload();
+            }
+        }
+
+        // الاستماع لتغييرات حقول القسم والطبيب للحفظ الفوري
+        deptInput.addEventListener('input', saveToLocalStorage);
+        docInput.addEventListener('input', saveToLocalStorage);
+
+        // تشغيل دالة التحميل عند فتح الصفحة
+        loadFromLocalStorage();
+
+        // دالة مخصصة لضبط اسم ملف الـ PDF بناءً على القسم والتاريخ
         function customPrint() {
-            const deptInput = document.getElementById('input-dept').value.trim();
-            const deptName = deptInput ? deptInput : "عام";
-            
-            // تغيير عنوان الصفحة مؤقتاً ليتخذ المتصفح هذا العنوان كاسم افتراضي لملف الـ PDF
+            const deptName = deptInput.value.trim() ? deptInput.value.trim() : "عام";
             document.title = `شيت_مرور_${deptName}_${currentDate}`;
-            
-            // فتح نافذة الطباعة والحفظ
             window.print();
         }
     </script>
