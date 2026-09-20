@@ -103,15 +103,26 @@
         }
         th, td {
             border: 1px solid #cbd5e1;
-            padding: 10px 6px;
+            padding: 8px 6px;
             text-align: center;
             font-size: 14px;
             color: #000;
+            vertical-align: middle;
         }
         th {
             background-color: #f8fafc;
             color: #000;
             font-weight: 700;
+        }
+
+        /* تعديل الخانات لتكون مرنة وتظهر الكتابة كاملة وتتكيف مع المحتوى */
+        td[contenteditable="true"] {
+            min-height: 45px;
+            height: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            text-align: right; /* مريح للعين في الكتابة الطويلة */
+            padding: 8px;
         }
         td[contenteditable="true"]:focus {
             background-color: #eff6ff;
@@ -253,7 +264,7 @@
 
         @media print {
             .no-print { display: none !important; }
-            body { background-color: #fff; margin: 0; padding: 0; font-size: 14px; }
+            body { background-color: #fff; margin: 0; padding: 0; font-size: 13px; }
             #content-to-print {
                 padding: 0;
                 border-radius: 0;
@@ -266,8 +277,7 @@
             table { min-width: 100%; }
             .header-info { border-bottom: none; }
             th { background-color: #e2e8f0 !important; color: #000; -webkit-print-color-adjust: exact; }
-            th, td { border: 1px solid #000; color: #000 !important; }
-            .table-input { font-weight: normal; }
+            th, td { border: 1px solid #000; color: #000 !important; white-space: pre-wrap; }
             @page { size: A4 landscape; margin: 1cm; }
         }
 
@@ -292,7 +302,7 @@
 
     <div id="content-to-print">
         <div class="hospital-logo">
-            <img src="MEpics/Picture1.png" alt="مستشفى صيدناوي">
+            <img src="TWEAKS/MEpics/Picture1.png" alt="مستشفى صيدناوي" onerror="this.onerror=null; this.src='MEpics/Picture1.png';">
         </div>
 
         <h2>شيت مرور الأطباء</h2>
@@ -357,7 +367,6 @@
         const dd0 = String(today.getDate()).padStart(2, '0');
         dateInput.value = `${yyyy0}-${mm0}-${dd0}`;
 
-        // دالة بسيطة لتقسيم سطر الـ CSV مع مراعاة علامات التنصيص
         function parseCSVLine(text) {
             let result = [];
             let current = '';
@@ -377,7 +386,6 @@
             return result;
         }
 
-        // سحب قائمة المرضى من شيت الـ CSV مباشرة
         async function fetchPatientsCSV() {
             loadingIndicator.style.color = '#2563eb';
             loadingIndicator.innerText = 'جاري مزامنة أسماء المرضى من الشيت... ⏳';
@@ -392,12 +400,11 @@
 
                 const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
                 
-                // البحث عن أعمدة الاسم وتاريخ الدخول بمرونة
                 let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
                 let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
 
-                if (nameIdx === -1) nameIdx = 1; // افتراضي العمود الثاني لو مش معروف
-                if (dateIdx === -1) dateIdx = 2; // افتراضي العمود الثالث لو مش معروف
+                if (nameIdx === -1) nameIdx = 1;
+                if (dateIdx === -1) dateIdx = 2;
 
                 patientsData = [];
                 for (let i = 1; i < lines.length; i++) {
@@ -447,7 +454,6 @@
             tdNum.className = 'row-num';
             tr.appendChild(tdNum);
 
-            // عمود اسم المريض مع الاقتراحات الفورية
             const tdName = document.createElement('td');
             const nameWrapper = document.createElement('div');
             nameWrapper.className = 'name-cell-wrapper';
@@ -455,7 +461,7 @@
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'table-input name-input';
-            nameInput.placeholder = 'ابحث أو اكتب اسم المريض...';
+            nameInput.placeholder = 'ابحث أو اكتب...';
             nameInput.autocomplete = 'off';
             nameInput.value = rowData.name || '';
 
@@ -522,7 +528,7 @@
                 if (matches.length === 0) {
                     const empty = document.createElement('div');
                     empty.className = 'suggestion-empty';
-                    empty.textContent = patientsData.length === 0 ? 'جاري تحميل القائمة...' : 'لا يوجد مريض بهذا الاسم';
+                    empty.textContent = patientsData.length === 0 ? 'جاري التحميل...' : 'لا يوجد مريض بهذا الاسم';
                     suggestionsBox.appendChild(empty);
                     suggestionsBox.classList.add('open');
                     return;
@@ -689,7 +695,6 @@
         deptInput.addEventListener('input', saveToLocalStorage);
         docInput.addEventListener('input', saveToLocalStorage);
 
-        // تنفيذ السحب المباشر للأسماء عند فتح الصفحة
         fetchPatientsCSV();
         loadFromLocalStorage();
 
