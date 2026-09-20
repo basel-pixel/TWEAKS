@@ -315,7 +315,7 @@
             .table-input { font-weight: normal; }
             @page { size: A4 landscape; margin: 1cm; }
         }
-/* إخفاء سهم التقويم الافتراضي من جميع المتصفحات */
+        /* إخفاء سهم التقويم الافتراضي من جميع المتصفحات */
 input[type="date"] {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -329,6 +329,7 @@ input[type="date"]::-webkit-clear-button {
     display: none !important;
     -webkit-appearance: none;
 }
+
     </style>
 </head>
 <body>
@@ -887,6 +888,7 @@ input[type="date"]::-webkit-clear-button {
 
         fetchPatients();
         loadFromLocalStorage();
+        setInterval(fetchPatients, 180000);
 
         function customPrint() {
             const deptName = deptInput.value.trim() ? deptInput.value.trim() : "عام";
