@@ -459,7 +459,6 @@
             tdNum.className = 'row-num';
             tr.appendChild(tdNum);
 
-            // عمود اسم المريض مع شاشة المقترحات العائمة الواسعة
             const tdName = document.createElement('td');
             const nameWrapper = document.createElement('div');
             nameWrapper.className = 'name-cell-wrapper';
@@ -627,7 +626,7 @@
                 } catch (e) {}
             }
 
-            for (let i = 1; i <= 15; i++) {
+            for (let i = 1; i <= 5; i++) {
                 addRow();
             }
         }
@@ -673,6 +672,16 @@
         }
 
         async function saveAndPrint() {
+            const deptVal = deptInput.value.trim();
+            const docVal = docInput.value.trim();
+
+            if (!deptVal || !docVal) {
+                alert('⚠️ تنبيه هام:\nمن فضلك اكتب "اسم القسم" و "اسم الطبيب" في الأعلى قبل الحفظ والطباعة.');
+                if (!deptVal) deptInput.focus();
+                else docInput.focus();
+                return;
+            }
+
             const btn = document.getElementById('cloud-save-btn');
             const originalText = btn.textContent;
 
