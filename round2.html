@@ -140,6 +140,65 @@
             border-radius: 4px;
         }
 
+        /* قائمة اقتراحات أسماء المرضى */
+        .name-cell-wrapper {
+            position: relative;
+        }
+        .suggestions-box {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            z-index: 50;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            max-height: 220px;
+            overflow-y: auto;
+            text-align: right;
+        }
+        .suggestions-box.open {
+            display: block;
+        }
+        .suggestion-item {
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item .sugg-date {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .suggestion-item:hover {
+            background-color: #eff6ff;
+        }
+        .suggestion-empty {
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        #loading-indicator {
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
         .delete-row-btn {
             background: transparent;
             border: none;
@@ -233,7 +292,7 @@
 
     <div id="content-to-print">
         <div class="hospital-logo">
-           <img src="MEpics/Picture1.png" alt="مستشفى صيدناوي">
+            <img src="TWEAKS/MEpics/Picture1.png" alt="مستشفى صيدناوي">
         </div>
 
         <h2>شيت مرور الأطباء</h2>
@@ -243,6 +302,8 @@
             <span>القسم: <input type="text" id="input-dept" placeholder="اكتب القسم"></span>
             <span>الطبيب: <input type="text" id="input-doc" placeholder="اسم الطبيب"></span>
         </div>
+
+        <div id="loading-indicator" class="no-print"></div>
 
         <div class="table-responsive">
             <table>
@@ -272,10 +333,13 @@
         const deptInput = document.getElementById('input-dept');
         const docInput = document.getElementById('input-doc');
         const dateInput = document.getElementById('input-date');
+        const loadingIndicator = document.getElementById('loading-indicator');
         const originalTitle = document.title;
 
-        // اللينك الجديد بتاعك
         const API_URL = "https://script.google.com/macros/s/AKfycbyK93D20fAUN3ZTUi03WA4xudNs17OyQLBnVF84RB0nLJDjCughOab5aWjms55XmrCNDw/exec";
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
+
+        let patientsData = [];
 
         function safeGetLocal(key) {
             try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -293,6 +357,82 @@
         const dd0 = String(today.getDate()).padStart(2, '0');
         dateInput.value = `${yyyy0}-${mm0}-${dd0}`;
 
+        // دالة بسيطة لتقسيم سطر الـ CSV مع مراعاة علامات التنصيص
+        function parseCSVLine(text) {
+            let result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        // سحب قائمة المرضى من شيت الـ CSV مباشرة
+        async function fetchPatientsCSV() {
+            loadingIndicator.style.color = '#2563eb';
+            loadingIndicator.innerText = 'جاري مزامنة أسماء المرضى من الشيت... ⏳';
+
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error('فشل جلب ملف الـ CSV');
+                const csvText = await response.text();
+                
+                const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+                if (lines.length < 2) return;
+
+                const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+                
+                // البحث عن أعمدة الاسم وتاريخ الدخول بمرونة
+                let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
+                let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
+
+                if (nameIdx === -1) nameIdx = 1; // افتراضي العمود الثاني لو مش معروف
+                if (dateIdx === -1) dateIdx = 2; // افتراضي العمود الثالث لو مش معروف
+
+                patientsData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                    const name = cols[nameIdx] || '';
+                    const date = cols[dateIdx] || '';
+                    if (name) {
+                        patientsData.push({ name: name, admissionDate: date });
+                    }
+                }
+
+                loadingIndicator.style.color = '#16a34a';
+                loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض من قاعدة البيانات بنجاح`;
+                setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
+
+            } catch (e) {
+                console.error(e);
+                loadingIndicator.style.color = '#dc2626';
+                loadingIndicator.innerText = '⚠️ تعذر سحب أسماء المرضى تلقائياً (يعمل بالإدخال اليدوي)';
+            }
+        }
+
+        function parseDateToInputValue(rawDate) {
+            if (!rawDate) return '';
+            const str = String(rawDate).trim();
+            let m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+            
+            m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (m) {
+                return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
         function renumberRows() {
             Array.from(tbody.rows).forEach((tr, idx) => {
                 const numCell = tr.querySelector('.row-num');
@@ -307,13 +447,24 @@
             tdNum.className = 'row-num';
             tr.appendChild(tdNum);
 
+            // عمود اسم المريض مع الاقتراحات الفورية
             const tdName = document.createElement('td');
+            const nameWrapper = document.createElement('div');
+            nameWrapper.className = 'name-cell-wrapper';
+
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'table-input name-input';
-            nameInput.placeholder = 'اكتب اسم المريض...';
+            nameInput.placeholder = 'ابحث أو اكتب اسم المريض...';
+            nameInput.autocomplete = 'off';
             nameInput.value = rowData.name || '';
-            tdName.appendChild(nameInput);
+
+            const suggestionsBox = document.createElement('div');
+            suggestionsBox.className = 'suggestions-box';
+
+            nameWrapper.appendChild(nameInput);
+            nameWrapper.appendChild(suggestionsBox);
+            tdName.appendChild(nameWrapper);
             tr.appendChild(tdName);
 
             const tdDate = document.createElement('td');
@@ -325,7 +476,7 @@
             tr.appendChild(tdDate);
 
             const editableFields = ['residence', 'diag', 'plan', 'notes'];
-            editableFields.forEach((field, index) => {
+            editableFields.forEach(field => {
                 const td = document.createElement('td');
                 td.setAttribute('contenteditable', 'true');
                 td.textContent = rowData[field] || '';
@@ -349,7 +500,74 @@
             tdDel.appendChild(delBtn);
             tr.appendChild(tdDel);
 
-            nameInput.addEventListener('input', saveToLocalStorage);
+            function applyPatientSelection(patient) {
+                nameInput.value = patient.name;
+                const parsedDate = parseDateToInputValue(patient.admissionDate);
+                if (parsedDate) dateCell.value = parsedDate;
+                closeSuggestions();
+                saveToLocalStorage();
+            }
+
+            function closeSuggestions() {
+                suggestionsBox.classList.remove('open');
+                suggestionsBox.innerHTML = '';
+            }
+
+            function renderSuggestions(query) {
+                suggestionsBox.innerHTML = '';
+                const q = query.trim().toLowerCase();
+                if (!q) { closeSuggestions(); return; }
+
+                const matches = patientsData.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+                if (matches.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'suggestion-empty';
+                    empty.textContent = patientsData.length === 0 ? 'جاري تحميل القائمة...' : 'لا يوجد مريض بهذا الاسم';
+                    suggestionsBox.appendChild(empty);
+                    suggestionsBox.classList.add('open');
+                    return;
+                }
+
+                matches.forEach(patient => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = patient.name;
+                    item.appendChild(nameSpan);
+
+                    if (patient.admissionDate) {
+                        const dateSpan = document.createElement('span');
+                        dateSpan.className = 'sugg-date';
+                        dateSpan.textContent = 'دخول: ' + patient.admissionDate;
+                        item.appendChild(dateSpan);
+                    }
+
+                    item.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        applyPatientSelection(patient);
+                    });
+                    item.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        applyPatientSelection(patient);
+                    }, { passive: false });
+
+                    suggestionsBox.appendChild(item);
+                });
+                suggestionsBox.classList.add('open');
+            }
+
+            nameInput.addEventListener('input', (e) => {
+                renderSuggestions(e.target.value);
+                saveToLocalStorage();
+            });
+            nameInput.addEventListener('focus', (e) => {
+                if (e.target.value.trim()) renderSuggestions(e.target.value);
+            });
+            nameInput.addEventListener('blur', () => {
+                setTimeout(closeSuggestions, 200);
+            });
+
             dateCell.addEventListener('input', saveToLocalStorage);
             Array.from(tr.querySelectorAll('td[contenteditable="true"]')).forEach(td => {
                 td.addEventListener('input', saveToLocalStorage);
@@ -471,6 +689,8 @@
         deptInput.addEventListener('input', saveToLocalStorage);
         docInput.addEventListener('input', saveToLocalStorage);
 
+        // تنفيذ السحب المباشر للأسماء عند فتح الصفحة
+        fetchPatientsCSV();
         loadFromLocalStorage();
 
         function customPrint() {
