@@ -96,7 +96,7 @@
 
         table {
             width: 100%;
-            min-width: 800px;
+            min-width: 900px;
             border-collapse: collapse;
             margin-bottom: 10px;
             border-radius: 8px;
@@ -148,6 +148,12 @@
             background-color: #eff6ff;
             outline: 2px solid #3b82f6;
             border-radius: 4px;
+        }
+
+        /* تمييز إدخال خانة الاسم لتكون واسعة ومريحة */
+        .name-input {
+            text-align: right;
+            padding-right: 8px;
         }
 
         #loading-indicator {
@@ -265,14 +271,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th width="5%">م</th>
-                        <th width="15%">اسم المريض</th>
-                        <th width="12%">تاريخ الدخول</th>
-                        <th width="8%">قسم الاقامة</th>
-                        <th width="15%">التشخيص</th>
-                        <th width="18%">الخطة العلاجية</th>
-                        <th width="22%">الملاحظات</th>
-                        <th width="5%" class="no-print"></th>
+                        <th width="4%">م</th>
+                        <th width="24%">اسم المريض</th>
+                        <th width="11%">تاريخ الدخول</th>
+                        <th width="8%">قسم الإقامة</th>
+                        <th width="14%">التشخيص</th>
+                        <th width="19%">الخطة العلاجية</th>
+                        <th width="20%">الملاحظات</th>
+                        <th width="4%" class="no-print"></th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -281,7 +287,6 @@
         </div>
     </div>
 
-    <!-- قائمة عامة لربط أسماء المرضى بالكامل عبر المتصفح -->
     <datalist id="patients-list-options"></datalist>
 
     <button class="btn add-btn no-print" onclick="addRow()">+ إضافة مريض</button>
@@ -299,7 +304,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbyK93D20fAUN3ZTUi03WA4xudNs17OyQLBnVF84RB0nLJDjCughOab5aWjms55XmrCNDw/exec";
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
-        let patientsMap = new Map(); // تخزين الاسم ومعه تاريخ الدخول المرتبط به
+        let patientsMap = new Map();
 
         function safeGetLocal(key) {
             try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -413,7 +418,7 @@
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'table-input name-input';
-            nameInput.placeholder = 'اختر أو اكتب المريض...';
+            nameInput.placeholder = 'اختر أو اكتب اسم المريض...';
             nameInput.setAttribute('list', 'patients-list-options');
             nameInput.autocomplete = 'off';
             nameInput.value = rowData.name || '';
@@ -453,7 +458,6 @@
             tdDel.appendChild(delBtn);
             tr.appendChild(tdDel);
 
-            // عند اختيار المريض من القائمة المنسدلة، يوضع تاريخ الدخول تلقائياً
             nameInput.addEventListener('input', (e) => {
                 const val = e.target.value.trim();
                 if (patientsMap.has(val)) {
