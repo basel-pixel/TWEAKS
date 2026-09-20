@@ -96,7 +96,7 @@
 
         table {
             width: 100%;
-            min-width: 900px;
+            min-width: 950px;
             border-collapse: collapse;
             margin-bottom: 10px;
             border-radius: 8px;
@@ -115,6 +115,7 @@
             font-weight: 700;
         }
 
+        /* خانات الكتابة المرنة والواسعة للتشخيص والخطط والملاحظات */
         td[contenteditable="true"] {
             min-height: 45px;
             height: auto;
@@ -150,10 +151,62 @@
             border-radius: 4px;
         }
 
-        /* تمييز إدخال خانة الاسم لتكون واسعة ومريحة */
-        .name-input {
+        /* نظام المقترحات العائمة (Autocomplete) الذكي لأسماء المرضى */
+        .name-cell-wrapper {
+            position: relative;
             text-align: right;
-            padding-right: 8px;
+        }
+        .name-input {
+            text-align: right !important;
+            padding-right: 8px !important;
+            font-weight: 700;
+        }
+        .suggestions-box {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            z-index: 100;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-height: 240px;
+            overflow-y: auto;
+            text-align: right;
+        }
+        .suggestions-box.open {
+            display: block;
+        }
+        .suggestion-item {
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item .sugg-date {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .suggestion-item:hover {
+            background-color: #eff6ff;
+        }
+        .suggestion-empty {
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #94a3b8;
         }
 
         #loading-indicator {
@@ -272,12 +325,12 @@
                 <thead>
                     <tr>
                         <th width="4%">م</th>
-                        <th width="24%">اسم المريض</th>
+                        <th width="26%">اسم المريض</th>
                         <th width="11%">تاريخ الدخول</th>
                         <th width="8%">قسم الإقامة</th>
-                        <th width="14%">التشخيص</th>
+                        <th width="13%">التشخيص</th>
                         <th width="19%">الخطة العلاجية</th>
-                        <th width="20%">الملاحظات</th>
+                        <th width="19%">الملاحظات</th>
                         <th width="4%" class="no-print"></th>
                     </tr>
                 </thead>
@@ -286,8 +339,6 @@
             </table>
         </div>
     </div>
-
-    <datalist id="patients-list-options"></datalist>
 
     <button class="btn add-btn no-print" onclick="addRow()">+ إضافة مريض</button>
     <button class="btn clear-btn no-print" onclick="clearData()">مسح البيانات وبدء شيت جديد 🗑️</button>
@@ -298,13 +349,12 @@
         const docInput = document.getElementById('input-doc');
         const dateInput = document.getElementById('input-date');
         const loadingIndicator = document.getElementById('loading-indicator');
-        const datalistEl = document.getElementById('patients-list-options');
         const originalTitle = document.title;
 
         const API_URL = "https://script.google.com/macros/s/AKfycbyK93D20fAUN3ZTUi03WA4xudNs17OyQLBnVF84RB0nLJDjCughOab5aWjms55XmrCNDw/exec";
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
-        let patientsMap = new Map();
+        let patientsData = [];
 
         function safeGetLocal(key) {
             try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -361,23 +411,18 @@
                 if (nameIdx === -1) nameIdx = 1;
                 if (dateIdx === -1) dateIdx = 2;
 
-                patientsMap.clear();
-                datalistEl.innerHTML = '';
-
+                patientsData = [];
                 for (let i = 1; i < lines.length; i++) {
                     const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
                     const name = cols[nameIdx] || '';
                     const date = cols[dateIdx] || '';
-                    if (name && !patientsMap.has(name)) {
-                        patientsMap.set(name, date);
-                        const opt = document.createElement('option');
-                        opt.value = name;
-                        datalistEl.appendChild(opt);
+                    if (name) {
+                        patientsData.push({ name: name, admissionDate: date });
                     }
                 }
 
                 loadingIndicator.style.color = '#16a34a';
-                loadingIndicator.innerText = `✅ تم تحميل ${patientsMap.size} مريض بنجاح`;
+                loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
                 setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
 
             } catch (e) {
@@ -414,15 +459,24 @@
             tdNum.className = 'row-num';
             tr.appendChild(tdNum);
 
+            // عمود اسم المريض مع شاشة المقترحات العائمة الواسعة
             const tdName = document.createElement('td');
+            const nameWrapper = document.createElement('div');
+            nameWrapper.className = 'name-cell-wrapper';
+
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'table-input name-input';
-            nameInput.placeholder = 'اختر أو اكتب اسم المريض...';
-            nameInput.setAttribute('list', 'patients-list-options');
+            nameInput.placeholder = 'ابحث أو اكتب اسم المريض...';
             nameInput.autocomplete = 'off';
             nameInput.value = rowData.name || '';
-            tdName.appendChild(nameInput);
+
+            const suggestionsBox = document.createElement('div');
+            suggestionsBox.className = 'suggestions-box';
+
+            nameWrapper.appendChild(nameInput);
+            nameWrapper.appendChild(suggestionsBox);
+            tdName.appendChild(nameWrapper);
             tr.appendChild(tdName);
 
             const tdDate = document.createElement('td');
@@ -458,16 +512,72 @@
             tdDel.appendChild(delBtn);
             tr.appendChild(tdDel);
 
-            nameInput.addEventListener('input', (e) => {
-                const val = e.target.value.trim();
-                if (patientsMap.has(val)) {
-                    const rawDate = patientsMap.get(val);
-                    const parsed = parseDateToInputValue(rawDate);
-                    if (parsed) {
-                        dateCell.value = parsed;
-                    }
-                }
+            function applyPatientSelection(patient) {
+                nameInput.value = patient.name;
+                const parsedDate = parseDateToInputValue(patient.admissionDate);
+                if (parsedDate) dateCell.value = parsedDate;
+                closeSuggestions();
                 saveToLocalStorage();
+            }
+
+            function closeSuggestions() {
+                suggestionsBox.classList.remove('open');
+                suggestionsBox.innerHTML = '';
+            }
+
+            function renderSuggestions(query) {
+                suggestionsBox.innerHTML = '';
+                const q = query.trim().toLowerCase();
+                if (!q) { closeSuggestions(); return; }
+
+                const matches = patientsData.filter(p => p.name.toLowerCase().includes(q)).slice(0, 10);
+                if (matches.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'suggestion-empty';
+                    empty.textContent = patientsData.length === 0 ? 'جاري التحميل...' : 'لا يوجد مريض بهذا الاسم';
+                    suggestionsBox.appendChild(empty);
+                    suggestionsBox.classList.add('open');
+                    return;
+                }
+
+                matches.forEach(patient => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = patient.name;
+                    item.appendChild(nameSpan);
+
+                    if (patient.admissionDate) {
+                        const dateSpan = document.createElement('span');
+                        dateSpan.className = 'sugg-date';
+                        dateSpan.textContent = 'تاريخ الدخول: ' + patient.admissionDate;
+                        item.appendChild(dateSpan);
+                    }
+
+                    item.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        applyPatientSelection(patient);
+                    });
+                    item.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        applyPatientSelection(patient);
+                    }, { passive: false });
+
+                    suggestionsBox.appendChild(item);
+                });
+                suggestionsBox.classList.add('open');
+            }
+
+            nameInput.addEventListener('input', (e) => {
+                renderSuggestions(e.target.value);
+                saveToLocalStorage();
+            });
+            nameInput.addEventListener('focus', (e) => {
+                if (e.target.value.trim()) renderSuggestions(e.target.value);
+            });
+            nameInput.addEventListener('blur', () => {
+                setTimeout(closeSuggestions, 200);
             });
 
             dateCell.addEventListener('input', saveToLocalStorage);
