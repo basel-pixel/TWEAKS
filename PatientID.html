@@ -223,13 +223,14 @@
         }
 
         .st-name {
-            font-size: 13px;
+            font-size: 12px; /* تصغير الخط قليلاً لاستيعاب الأسماء الطويلة */
             font-weight: 900;
             text-align: center;
             margin-bottom: 2px;
-            white-space: nowrap;
+            white-space: normal; /* السماح بنزول الاسم على سطرين */
+            line-height: 1.1; /* تضييق المسافة بين السطرين */
+            max-height: 28px; /* وضع حد أقصى للارتفاع للحفاظ على مقاس الاستيكر */
             overflow: hidden;
-            text-overflow: ellipsis;
             border-bottom: 1px solid #000;
             padding-bottom: 2px;
         }
