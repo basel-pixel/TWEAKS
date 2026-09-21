@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>طباعة استيكر المريض</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* مقاس الاستيكر التقريبي (5 سم عرض × 3 سم طول) */
+            --label-width: 50mm;
+            --label-height: 30mm;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ==================== تصميم واجهة الاستخدام (لا يظهر في الطباعة) ==================== */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hospital-logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .hospital-logo img {
+            max-width: 120px;
+            height: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .suggestions-box {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
+        .suggestions-box.open { display: block; }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .suggestion-item:hover { background-color: #eff6ff; }
+        .suggestion-item.active { background-color: #dbeafe; }
+        .suggestion-item:last-child { border-bottom: none; }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        #loading-msg {
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #2563eb;
+            min-height: 20px;
+            flex: 1;
+        }
+
+        .btn-refresh {
+            flex-shrink: 0;
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-refresh:hover { background: #dbeafe; }
+        .btn-refresh:disabled { opacity: 0.6; cursor: default; }
+
+        .copies-box {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .copies-box label {
+            font-weight: bold;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .copies-box input {
+            width: 70px;
+            padding: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .copies-box input:focus {
+            border-color: #10b981;
+        }
+
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .btn-print {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            transition: transform 0.1s;
+        }
+        .btn-print:active { transform: scale(0.97); }
+
+        /* ==================== تصميم الاستيكر ==================== */
+        .sticker {
+            width: var(--label-width);
+            height: var(--label-height);
+            background: #fff;
+            border: 1px dashed #94a3b8; /* إطار للمعاينة على الشاشة */
+            box-sizing: border-box;
+            padding: 2mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
+            color: #000;
+        }
+
+        .st-name {
+            font-size: 13px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
+        }
+
+        .st-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .st-label { font-weight: 600; font-size: 9px; }
+        
+        [contenteditable="true"]:focus {
+            outline: 1px dashed #3b82f6;
+            background: #eff6ff;
+        }
+
+        /* حاوية الطباعة المخفية في الواجهة */
+        #print-container {
+            display: none;
+        }
+
+        /* ==================== إعدادات الطباعة (Xprinter) ==================== */
+        @media print {
+            /* إخفاء كل الموقع ما عدا حاوية الطباعة */
+            .no-print, .app-container { display: none !important; }
+            
+            #print-container {
+                display: block !important;
+            }
+
+            @page {
+                size: var(--label-width) var(--label-height);
+                margin: 0; /* بدون هوامش عشان يطبع من الحافة للحافة */
+            }
+
+            body, html {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+
+            .sticker {
+                border: none !important; /* إزالة إطار المعاينة الوهمي في الطباعة */
+                margin: 0;
+                padding: 1.5mm; /* هامش داخلي بسيط للنص */
+                page-break-after: always; /* مهم جداً: إجبار الطابعة على سحب استيكر جديد لكل نسخة */
+            }
+
+            /* منع صفحة فاضية زيادة بعد آخر استيكر */
+            .sticker:last-child {
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الواجهة الأساسية (تظهر على الشاشة فقط) -->
+    <div class="app-container no-print">
+        
+        <div class="hospital-logo">
+            <img src="MEpics/Picture1.png" alt="مستشفى صيدناوي" onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';">
+        </div>
+
+        <h2>طباعة ستيكر المريض</h2>
+        
+        <div class="status-row">
+            <div id="loading-msg">جاري تحميل البيانات من الشيت... ⏳</div>
+            <button type="button" id="refresh-btn" class="btn-refresh" onclick="loadData()" title="تحديث البيانات من الشيت">🔄 تحديث</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="اكتب اسم المريض للبحث..." autocomplete="off">
+            <div id="suggestions" class="suggestions-box"></div>
+        </div>
+
+        <div class="copies-box">
+            <label for="copies-count">عدد النسخ (الستيكرات):</label>
+            <input type="number" id="copies-count" min="1" max="50" value="1">
+        </div>
+
+        <div class="preview-section">
+            <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
+            <!-- الاستيكر المعاينة -->
+            <div class="sticker" id="preview-sticker">
+                <div class="st-name" id="st-name" contenteditable="true">اسم المريض</div>
+                <div class="st-row">
+                    <span><span class="st-label">دخول:</span> <span id="st-admin-id" contenteditable="true">---</span></span>
+                    <span><span class="st-label">موحد:</span> <span id="st-unified-id" contenteditable="true">---</span></span>
+                </div>
+                <div class="st-row">
+                    <span><span class="st-label">تاريخ:</span> <span id="st-date" contenteditable="true">---</span></span>
+                    <span><span class="st-label">قسم:</span> <span id="st-dept" contenteditable="true">---</span></span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-print" onclick="printStickers()">🖨️ طباعة الاستيكرات</button>
+    </div>
+
+    <!-- الحاوية التي سيتم تعبئتها بالستيكرات عند الطباعة فقط -->
+    <div id="print-container"></div>
+
+<script>
+    // رابط الـ CSV للمزامنة
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
+
+    let patientsList = [];
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('suggestions');
+    const loadingMsg = document.getElementById('loading-msg');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const copiesCount = document.getElementById('copies-count');
+
+    // عناصر الاستيكر للمعاينة
+    const stName = document.getElementById('st-name');
+    const stAdminId = document.getElementById('st-admin-id');
+    const stUnifiedId = document.getElementById('st-unified-id');
+    const stDate = document.getElementById('st-date');
+    const stDept = document.getElementById('st-dept');
+
+    // توحيد البحث
+    function normalizeArabic(text) {
+        return String(text || '').trim().toLowerCase()
+            .replace(/[\u064B-\u065F\u0670]/g, '')
+            .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي')
+            .replace(/ة/g, 'ه').replace(/[ؤئ]/g, 'ء')
+            .replace(/\s+/g, ' ');
+    }
+
+    function parseCSVLine(text) {
+        let result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            let char = text[i];
+            if (char === '"') {
+                // علامة تنصيص مزدوجة "" جوه خانة بين تنصيص = علامة تنصيص واحدة فعلية (escape)
+                if (inQuotes && text[i + 1] === '"') {
+                    current += '"';
+                    i++; // تخطي علامة التنصيص الثانية
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+            else { current += char; }
+        }
+        result.push(current.trim());
+        return result;
+    }
+
+    // حالة تحميل البيانات: 'loading' | 'ready' | 'error'
+    let dataStatus = 'loading';
+
+    // سحب الداتا من الشيت (تُستخدم عند فتح الصفحة وعند الضغط على زرار التحديث)
+    async function loadData() {
+        dataStatus = 'loading';
+        refreshBtn.disabled = true;
+        loadingMsg.style.display = 'block';
+        loadingMsg.innerText = 'جاري تحميل البيانات من الشيت... ⏳';
+        loadingMsg.style.color = '#2563eb';
+
+        try {
+            // إضافة باراميتر عشوائي لمنع الكاش والحصول على أحدث نسخة من الشيت
+            const response = await fetch(CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
+            if(!response.ok) throw new Error("Error fetching CSV");
+            const csvText = await response.text();
+            
+            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+            if (lines.length < 2) {
+                loadingMsg.innerText = '⚠️ لا توجد بيانات في الشيت';
+                loadingMsg.style.color = '#dc2626';
+                dataStatus = 'error';
+                refreshBtn.disabled = false;
+                return;
+            }
+
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            
+            const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
+            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
+            const colAdmin = headers.findIndex(h => h.includes('رقم الدخول') || h.includes('دخول') || h.includes('رقم المريض'));
+            const colDate = headers.findIndex(h => h.includes('تاريخ'));
+            const colDept = headers.findIndex(h => h.includes('قسم') || h.includes('تخصص'));
+
+            // تفريغ القائمة القديمة قبل إعادة التعبئة (مهم عند التحديث اليدوي)
+            patientsList = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                if (cols[colName]) {
+                    patientsList.push({
+                        name: cols[colName] || '',
+                        unifiedId: colUnified !== -1 ? cols[colUnified] : '',
+                        adminId: colAdmin !== -1 ? cols[colAdmin] : '',
+                        date: colDate !== -1 ? cols[colDate] : '',
+                        dept: colDept !== -1 ? cols[colDept] : ''
+                    });
+                }
+            }
+            loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
+            loadingMsg.style.color = '#10b981';
+            dataStatus = 'ready';
+            refreshBtn.disabled = false;
+            setTimeout(() => loadingMsg.style.display = 'none', 3000);
+        } catch (error) {
+            loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            loadingMsg.style.color = '#dc2626';
+            dataStatus = 'error';
+            refreshBtn.disabled = false;
+        }
+    }
+
+    // البحث والمقترحات
+    let currentMatches = [];
+    let activeIndex = -1; // فهرس العنصر المُظلَّل حالياً بلوحة المفاتيح
+    let selectedPatient = null; // آخر مريض تم اختياره فعلياً (للتحقق قبل الطباعة)
+
+    function renderActiveHighlight() {
+        const items = suggestionsBox.querySelectorAll('.suggestion-item[data-idx]');
+        items.forEach(el => el.classList.remove('active'));
+        if (activeIndex >= 0 && items[activeIndex]) {
+            items[activeIndex].classList.add('active');
+            items[activeIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        const query = normalizeArabic(e.target.value);
+        suggestionsBox.innerHTML = '';
+        activeIndex = -1;
+        selectedPatient = null; // المستخدم بيكتب تاني، يبقى لازم يختار مريض من جديد
+
+        if (!query) {
+            suggestionsBox.classList.remove('open');
+            currentMatches = [];
+            return;
+        }
+
+        currentMatches = patientsList.filter(p => normalizeArabic(p.name).includes(query)).slice(0, 10);
+
+        if (currentMatches.length === 0) {
+            suggestionsBox.innerHTML = '<div class="suggestion-item" style="color:#94a3b8;">لا يوجد نتائج...</div>';
+        } else {
+            currentMatches.forEach((patient, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.dataset.idx = idx;
+                div.innerText = patient.name;
+                div.onmousedown = (ev) => {
+                    ev.preventDefault();
+                    activeIndex = idx;
+                    fillSticker(patient);
+                };
+                suggestionsBox.appendChild(div);
+            });
+        }
+        suggestionsBox.classList.add('open');
+    });
+
+    // تنقل بالأسهم واختيار بـ Enter
+    searchInput.addEventListener('keydown', (e) => {
+        if (!suggestionsBox.classList.contains('open') || currentMatches.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % currentMatches.length;
+            renderActiveHighlight();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = (activeIndex - 1 + currentMatches.length) % currentMatches.length;
+            renderActiveHighlight();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && currentMatches[activeIndex]) {
+                fillSticker(currentMatches[activeIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsBox.classList.remove('open');
+        }
+    });
+
+    searchInput.addEventListener('blur', () => setTimeout(() => suggestionsBox.classList.remove('open'), 150));
+
+    // تعبئة الاستيكر بالبيانات
+    function fillSticker(patient) {
+        selectedPatient = patient;
+        searchInput.value = patient.name;
+        suggestionsBox.classList.remove('open');
+        
+        stName.innerText = patient.name || "---";
+        stAdminId.innerText = patient.adminId || "---";
+        stUnifiedId.innerText = patient.unifiedId || "---";
+        
+        let shortDate = patient.date;
+        let dateMatch = shortDate.match(/^(\d{1,4}[\-\/]\d{1,2}[\-\/]\d{1,4})/);
+        if(dateMatch) shortDate = dateMatch[1];
+        
+        stDate.innerText = shortDate || "---";
+        stDept.innerText = patient.dept || "---";
+    }
+
+    // دالة الطباعة وإنشاء النسخ المطلوبة
+    function printStickers() {
+        const printContainer = document.getElementById('print-container');
+        const previewSticker = document.getElementById('preview-sticker');
+
+        // تحذير: البيانات لسه بتتحمل من الشيت
+        if (dataStatus === 'loading') {
+            const proceed = confirm('⏳ البيانات لسه بتتحمل من الشيت. لو طبعت دلوقتي ممكن الاستيكر يطلع فاضي أو قديم.\n\nهل تحب تكمل الطباعة برضه؟');
+            if (!proceed) return;
+        }
+
+        // تحذير: لسه مفيش مريض متختار (الاستيكر لسه على القيم الافتراضية)
+        if (!selectedPatient && stName.innerText.trim() === 'اسم المريض') {
+            const proceed = confirm('⚠️ لسه معملتش بحث عن مريض ولا اخترت حد من القائمة، والاستيكر لسه فاضي.\n\nهل تحب تكمل الطباعة برضه؟');
+            if (!proceed) return;
+        }
+
+        // جلب عدد النسخ
+        let copies = parseInt(copiesCount.value, 10);
+        if (isNaN(copies) || copies < 1) copies = 1;
+        if (copies > 50) copies = 50; // حد أقصى للنسخ عشان المتصفح ما يعلقش
+
+        // تأكيد إضافي لو عدد النسخ كبير، تجنب هدر الورق بالغلط
+        if (copies > 10) {
+            const proceed = confirm(`عدد النسخ المطلوب ${copies} استيكر. هل أنت متأكد؟`);
+            if (!proceed) return;
+        }
+
+        // تفريغ حاوية الطباعة أولاً
+        printContainer.innerHTML = '';
+
+        // تكرار الاستيكر بالعدد المطلوب
+        for (let i = 0; i < copies; i++) {
+            // ننسخ الاستيكر اللى فى المعاينة بكل التعديلات اليدوية اللي عملها الدكتور
+            const clone = previewSticker.cloneNode(true);
+            clone.removeAttribute('id'); // نشيل الـ id عشان ميتكررش
+            
+            // نلغي خاصية التعديل من النسخ المطبوعة (أفضل للـ rendering)
+            const editables = clone.querySelectorAll('[contenteditable="true"]');
+            editables.forEach(el => el.removeAttribute('contenteditable'));
+
+            printContainer.appendChild(clone);
+        }
+
+        // استدعاء شاشة الطباعة
+        window.print();
+    }
+
+    // تشغيل التحميل
+    loadData();
+</script>
+</body>
+</html>
