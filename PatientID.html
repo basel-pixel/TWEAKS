@@ -23,6 +23,7 @@
             align-items: center;
         }
 
+        /* ==================== تصميم واجهة الاستخدام (لا يظهر في الطباعة) ==================== */
         .app-container {
             width: 100%;
             max-width: 500px;
@@ -205,7 +206,7 @@
         }
         .btn-print:active { transform: scale(0.97); }
 
-        /* ==================== تصميم الاستيكر ==================== */
+        /* ==================== تصميم الاستيكر المطبوع ==================== */
         .sticker {
             width: var(--label-width);
             height: var(--label-height);
@@ -215,35 +216,50 @@
             padding: 2mm;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            gap: 2px;
+            justify-content: space-between; /* توزيع المسافات بين اللوجو والاسم والرقم */
+            align-items: center;
             overflow: hidden;
             font-family: 'Cairo', sans-serif;
             color: #000;
         }
 
+        /* لوجو المستشفى داخل الاستيكر */
+        .st-logo {
+            height: 9mm; /* ارتفاع اللوجو داخل الاستيكر */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2px;
+        }
+        .st-logo img {
+            max-height: 100%;
+            max-width: 40mm;
+            object-fit: contain;
+        }
+
         .st-name {
-            font-size: 12px; /* تصغير الخط قليلاً لاستيعاب الأسماء الطويلة */
+            font-size: 12px;
             font-weight: 900;
             text-align: center;
-            margin-bottom: 2px;
+            width: 100%;
             white-space: normal; /* السماح بنزول الاسم على سطرين */
-            line-height: 1.1; /* تضييق المسافة بين السطرين */
-            max-height: 28px; /* وضع حد أقصى للارتفاع للحفاظ على مقاس الاستيكر */
+            line-height: 1.1;
+            max-height: 28px;
             overflow: hidden;
             border-bottom: 1px solid #000;
             padding-bottom: 2px;
+            margin-bottom: 2px;
         }
 
-        .st-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1.2;
+        .st-unified {
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+            width: 100%;
+            white-space: nowrap;
         }
 
-        .st-label { font-weight: 600; font-size: 9px; }
+        .st-label { font-weight: 600; font-size: 10px; }
         
         [contenteditable="true"]:focus {
             outline: 1px dashed #3b82f6;
@@ -279,10 +295,9 @@
                 border: none !important; /* إزالة إطار المعاينة الوهمي في الطباعة */
                 margin: 0;
                 padding: 1.5mm; /* هامش داخلي بسيط للنص */
-                page-break-after: always; /* مهم جداً: إجبار الطابعة على سحب استيكر جديد لكل نسخة */
+                page-break-after: always; /* إجبار الطابعة على سحب استيكر جديد لكل نسخة */
             }
 
-            /* منع صفحة فاضية زيادة بعد آخر استيكر */
             .sticker:last-child {
                 page-break-after: auto;
             }
@@ -317,16 +332,18 @@
 
         <div class="preview-section">
             <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
+            
             <!-- الاستيكر المعاينة -->
             <div class="sticker" id="preview-sticker">
-                <div class="st-name" id="st-name" contenteditable="true">اسم المريض</div>
-                <div class="st-row">
-                    <span><span class="st-label">دخول:</span> <span id="st-admin-id" contenteditable="true">---</span></span>
-                    <span><span class="st-label">موحد:</span> <span id="st-unified-id" contenteditable="true">---</span></span>
+                <!-- إضافة اللوجو داخل الاستيكر ليظهر في الطباعة -->
+                <div class="st-logo">
+                    <img src="MEpics/Picture1.png" alt="Logo" onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';">
                 </div>
-                <div class="st-row">
-                    <span><span class="st-label">تاريخ:</span> <span id="st-date" contenteditable="true">---</span></span>
-                    <span><span class="st-label">قسم:</span> <span id="st-dept" contenteditable="true">---</span></span>
+                
+                <div class="st-name" id="st-name" contenteditable="true">اسم المريض</div>
+                
+                <div class="st-unified">
+                    <span class="st-label">رقم موحد:</span> <span id="st-unified-id" contenteditable="true">---</span>
                 </div>
             </div>
         </div>
@@ -350,10 +367,7 @@
 
     // عناصر الاستيكر للمعاينة
     const stName = document.getElementById('st-name');
-    const stAdminId = document.getElementById('st-admin-id');
     const stUnifiedId = document.getElementById('st-unified-id');
-    const stDate = document.getElementById('st-date');
-    const stDept = document.getElementById('st-dept');
 
     // توحيد البحث
     function normalizeArabic(text) {
@@ -371,10 +385,9 @@
         for (let i = 0; i < text.length; i++) {
             let char = text[i];
             if (char === '"') {
-                // علامة تنصيص مزدوجة "" جوه خانة بين تنصيص = علامة تنصيص واحدة فعلية (escape)
                 if (inQuotes && text[i + 1] === '"') {
                     current += '"';
-                    i++; // تخطي علامة التنصيص الثانية
+                    i++; 
                 } else {
                     inQuotes = !inQuotes;
                 }
@@ -386,10 +399,9 @@
         return result;
     }
 
-    // حالة تحميل البيانات: 'loading' | 'ready' | 'error'
     let dataStatus = 'loading';
 
-    // سحب الداتا من الشيت (تُستخدم عند فتح الصفحة وعند الضغط على زرار التحديث)
+    // سحب الداتا من الشيت 
     async function loadData() {
         dataStatus = 'loading';
         refreshBtn.disabled = true;
@@ -398,7 +410,6 @@
         loadingMsg.style.color = '#2563eb';
 
         try {
-            // إضافة باراميتر عشوائي لمنع الكاش والحصول على أحدث نسخة من الشيت
             const response = await fetch(CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
             if(!response.ok) throw new Error("Error fetching CSV");
             const csvText = await response.text();
@@ -416,11 +427,7 @@
             
             const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
             const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
-            const colAdmin = headers.findIndex(h => h.includes('رقم الدخول') || h.includes('دخول') || h.includes('رقم المريض'));
-            const colDate = headers.findIndex(h => h.includes('تاريخ'));
-            const colDept = headers.findIndex(h => h.includes('قسم') || h.includes('تخصص'));
 
-            // تفريغ القائمة القديمة قبل إعادة التعبئة (مهم عند التحديث اليدوي)
             patientsList = [];
 
             for (let i = 1; i < lines.length; i++) {
@@ -428,10 +435,7 @@
                 if (cols[colName]) {
                     patientsList.push({
                         name: cols[colName] || '',
-                        unifiedId: colUnified !== -1 ? cols[colUnified] : '',
-                        adminId: colAdmin !== -1 ? cols[colAdmin] : '',
-                        date: colDate !== -1 ? cols[colDate] : '',
-                        dept: colDept !== -1 ? cols[colDept] : ''
+                        unifiedId: colUnified !== -1 ? cols[colUnified] : ''
                     });
                 }
             }
@@ -450,8 +454,8 @@
 
     // البحث والمقترحات
     let currentMatches = [];
-    let activeIndex = -1; // فهرس العنصر المُظلَّل حالياً بلوحة المفاتيح
-    let selectedPatient = null; // آخر مريض تم اختياره فعلياً (للتحقق قبل الطباعة)
+    let activeIndex = -1; 
+    let selectedPatient = null; 
 
     function renderActiveHighlight() {
         const items = suggestionsBox.querySelectorAll('.suggestion-item[data-idx]');
@@ -466,7 +470,7 @@
         const query = normalizeArabic(e.target.value);
         suggestionsBox.innerHTML = '';
         activeIndex = -1;
-        selectedPatient = null; // المستخدم بيكتب تاني، يبقى لازم يختار مريض من جديد
+        selectedPatient = null; 
 
         if (!query) {
             suggestionsBox.classList.remove('open');
@@ -495,7 +499,6 @@
         suggestionsBox.classList.add('open');
     });
 
-    // تنقل بالأسهم واختيار بـ Enter
     searchInput.addEventListener('keydown', (e) => {
         if (!suggestionsBox.classList.contains('open') || currentMatches.length === 0) return;
 
@@ -519,22 +522,14 @@
 
     searchInput.addEventListener('blur', () => setTimeout(() => suggestionsBox.classList.remove('open'), 150));
 
-    // تعبئة الاستيكر بالبيانات
+    // تعبئة الاستيكر بالبيانات المتبقية فقط
     function fillSticker(patient) {
         selectedPatient = patient;
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
         
         stName.innerText = patient.name || "---";
-        stAdminId.innerText = patient.adminId || "---";
         stUnifiedId.innerText = patient.unifiedId || "---";
-        
-        let shortDate = patient.date;
-        let dateMatch = shortDate.match(/^(\d{1,4}[\-\/]\d{1,2}[\-\/]\d{1,4})/);
-        if(dateMatch) shortDate = dateMatch[1];
-        
-        stDate.innerText = shortDate || "---";
-        stDept.innerText = patient.dept || "---";
     }
 
     // دالة الطباعة وإنشاء النسخ المطلوبة
@@ -542,50 +537,40 @@
         const printContainer = document.getElementById('print-container');
         const previewSticker = document.getElementById('preview-sticker');
 
-        // تحذير: البيانات لسه بتتحمل من الشيت
         if (dataStatus === 'loading') {
-            const proceed = confirm('⏳ البيانات لسه بتتحمل من الشيت. لو طبعت دلوقتي ممكن الاستيكر يطلع فاضي أو قديم.\n\nهل تحب تكمل الطباعة برضه؟');
+            const proceed = confirm('⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟');
             if (!proceed) return;
         }
 
-        // تحذير: لسه مفيش مريض متختار (الاستيكر لسه على القيم الافتراضية)
         if (!selectedPatient && stName.innerText.trim() === 'اسم المريض') {
-            const proceed = confirm('⚠️ لسه معملتش بحث عن مريض ولا اخترت حد من القائمة، والاستيكر لسه فاضي.\n\nهل تحب تكمل الطباعة برضه؟');
+            const proceed = confirm('⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟');
             if (!proceed) return;
         }
 
-        // جلب عدد النسخ
         let copies = parseInt(copiesCount.value, 10);
         if (isNaN(copies) || copies < 1) copies = 1;
-        if (copies > 50) copies = 50; // حد أقصى للنسخ عشان المتصفح ما يعلقش
+        if (copies > 50) copies = 50; 
 
-        // تأكيد إضافي لو عدد النسخ كبير، تجنب هدر الورق بالغلط
         if (copies > 10) {
             const proceed = confirm(`عدد النسخ المطلوب ${copies} استيكر. هل أنت متأكد؟`);
             if (!proceed) return;
         }
 
-        // تفريغ حاوية الطباعة أولاً
         printContainer.innerHTML = '';
 
-        // تكرار الاستيكر بالعدد المطلوب
         for (let i = 0; i < copies; i++) {
-            // ننسخ الاستيكر اللى فى المعاينة بكل التعديلات اليدوية اللي عملها الدكتور
             const clone = previewSticker.cloneNode(true);
-            clone.removeAttribute('id'); // نشيل الـ id عشان ميتكررش
+            clone.removeAttribute('id'); 
             
-            // نلغي خاصية التعديل من النسخ المطبوعة (أفضل للـ rendering)
             const editables = clone.querySelectorAll('[contenteditable="true"]');
             editables.forEach(el => el.removeAttribute('contenteditable'));
 
             printContainer.appendChild(clone);
         }
 
-        // استدعاء شاشة الطباعة
         window.print();
     }
 
-    // تشغيل التحميل
     loadData();
 </script>
 </body>
