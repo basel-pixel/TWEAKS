@@ -242,31 +242,31 @@
         }
 
         .st-name {
-            font-size: 12px;
+            font-size: 15px; /* كبرناه من 12 لـ 15 */
             font-weight: 900;
             text-align: center;
             width: 100%;
-            white-space: normal; /* السماح بنزول الاسم على سطرين */
-            line-height: 1.1;
-            max-height: 28px;
+            white-space: normal;
+            line-height: 1.2;
+            max-height: 35px; /* زودناها شوية عشان لو الاسم طويل ونزل على سطرين مايتقطعش */
             overflow: hidden;
             padding-bottom: 2px;
             margin-bottom: 2px;
         }
 
+        /* الرقم الموحد */
         .st-unified {
-            font-size: 12px;
+            font-size: 14px; /* كبرناه من 12 لـ 14 */
             font-weight: 800;
             text-align: center;
             width: 100%;
             white-space: nowrap;
         }
 
-        .st-label { font-weight: 600; font-size: 10px; }
-        
-        [contenteditable="true"]:focus {
-            outline: 1px dashed #3b82f6;
-            background: #eff6ff;
+        /* كلمة "رقم موحد:" نفسها */
+        .st-label { 
+            font-weight: 600; 
+            font-size: 12px; /* كبرناها من 10 لـ 12 */
         }
 
         /* حاوية الطباعة المخفية في الواجهة */
