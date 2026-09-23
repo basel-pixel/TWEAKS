@@ -10,11 +10,12 @@
 
     <style>
         :root {
-            /* XP-233B
+            /* =====================================================
+               XP-233B
                203 DPI
                50mm × 30mm
-               ≈ 400 × 240 dots
-            */
+            ===================================================== */
+
             --label-width: 50mm;
             --label-height: 30mm;
         }
@@ -25,15 +26,19 @@
 
         body {
             font-family: 'Cairo', sans-serif;
+
             background-color: #f1f5f9;
+
             margin: 0;
             padding: 20px;
+
             color: #0f172a;
 
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
 
         /* =========================================================
            واجهة البرنامج
@@ -42,10 +47,16 @@
         .app-container {
             width: 100%;
             max-width: 500px;
+
             background: #fff;
+
             padding: 20px;
+
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.05);
+
             margin-bottom: 20px;
 
             display: flex;
@@ -53,154 +64,214 @@
             align-items: center;
         }
 
+
         .hospital-logo {
             text-align: center;
             margin-bottom: 10px;
         }
+
 
         .hospital-logo img {
             max-width: 120px;
             height: auto;
         }
 
+
         h2 {
             text-align: center;
+
             margin-top: 0;
             margin-bottom: 20px;
+
             color: #1e293b;
         }
 
+
+        /* =========================================================
+           البحث
+        ========================================================= */
+
         .search-box {
             position: relative;
+
             margin-bottom: 20px;
+
             width: 100%;
         }
+
 
         .search-input {
             width: 100%;
+
             padding: 12px 15px;
 
             border: 2px solid #cbd5e1;
+
             border-radius: 8px;
 
             font-family: inherit;
+
             font-size: 15px;
+
             font-weight: 600;
 
             box-sizing: border-box;
+
             outline: none;
 
-            transition: border-color 0.2s;
+            transition:
+                border-color 0.2s;
         }
+
 
         .search-input:focus {
             border-color: #3b82f6;
         }
 
+
         .suggestions-box {
             display: none;
 
             position: absolute;
+
             top: 100%;
+
             right: 0;
             left: 0;
 
             z-index: 1000;
 
             background: #ffffff;
+
             border: 1px solid #cbd5e1;
+
             border-radius: 8px;
 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.15);
 
             max-height: 200px;
+
             overflow-y: auto;
 
             margin-top: 5px;
         }
 
+
         .suggestions-box.open {
             display: block;
         }
+
 
         .suggestion-item {
             padding: 10px 12px;
 
             font-size: 14px;
+
             font-weight: 600;
 
             cursor: pointer;
 
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom:
+                1px solid #f1f5f9;
         }
+
 
         .suggestion-item:hover {
             background-color: #eff6ff;
         }
 
+
         .suggestion-item.active {
             background-color: #dbeafe;
         }
+
 
         .suggestion-item:last-child {
             border-bottom: none;
         }
 
+
+        /* =========================================================
+           حالة التحميل
+        ========================================================= */
+
         .status-row {
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             gap: 8px;
+
             width: 100%;
 
             margin-bottom: 15px;
         }
 
+
         #loading-msg {
             text-align: center;
 
             font-size: 13px;
+
             font-weight: bold;
 
             color: #2563eb;
 
             min-height: 20px;
+
             flex: 1;
         }
+
 
         .btn-refresh {
             flex-shrink: 0;
 
             background: #eff6ff;
+
             color: #2563eb;
 
             border: 1px solid #bfdbfe;
+
             border-radius: 6px;
 
             padding: 6px 10px;
 
             font-family: inherit;
+
             font-size: 12px;
+
             font-weight: 700;
 
             cursor: pointer;
         }
 
+
         .btn-refresh:hover {
             background: #dbeafe;
         }
 
+
         .btn-refresh:disabled {
             opacity: 0.6;
+
             cursor: default;
         }
+
+
+        /* =========================================================
+           عدد النسخ
+        ========================================================= */
 
         .copies-box {
             width: 100%;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             gap: 10px;
@@ -208,17 +279,23 @@
             margin-bottom: 20px;
 
             background: #f8fafc;
+
             padding: 10px;
 
             border-radius: 8px;
+
             border: 1px solid #e2e8f0;
         }
 
+
         .copies-box label {
             font-weight: bold;
+
             color: #0f172a;
+
             font-size: 15px;
         }
+
 
         .copies-box input {
             width: 70px;
@@ -228,39 +305,59 @@
             text-align: center;
 
             font-size: 16px;
+
             font-weight: bold;
+
             font-family: inherit;
 
             border: 2px solid #cbd5e1;
+
             border-radius: 6px;
 
             outline: none;
         }
 
+
         .copies-box input:focus {
             border-color: #10b981;
         }
 
+
+        /* =========================================================
+           المعاينة
+        ========================================================= */
+
         .preview-section {
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
 
             margin-bottom: 20px;
         }
 
+
         .preview-title {
             font-size: 13px;
+
             color: #64748b;
 
             margin-bottom: 10px;
 
             font-weight: bold;
+
             text-align: center;
         }
 
+
+        /* =========================================================
+           زر الطباعة
+        ========================================================= */
+
         .btn-print {
             background: #10b981;
+
             color: #fff;
 
             border: none;
@@ -270,19 +367,34 @@
             padding: 15px;
 
             font-family: inherit;
+
             font-size: 18px;
+
             font-weight: bold;
 
             border-radius: 8px;
 
             cursor: pointer;
 
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            box-shadow:
+                0 4px 10px rgba(16,185,129,0.3);
+
+            transition:
+                transform 0.1s;
         }
+
 
         .btn-print:active {
             transform: scale(0.97);
         }
+
+
+        .btn-print:disabled {
+            opacity: 0.7;
+
+            cursor: wait;
+        }
+
 
         /* =========================================================
            الاستيكر الخاص بالمعاينة
@@ -290,6 +402,7 @@
 
         .sticker {
             width: var(--label-width);
+
             height: var(--label-height);
 
             background: #ffffff;
@@ -301,25 +414,40 @@
             padding: 2mm;
 
             display: flex;
+
             flex-direction: column;
 
             justify-content: space-between;
+
             align-items: center;
 
             overflow: hidden;
 
             color: #000000 !important;
 
-            font-family: Tahoma, Arial, sans-serif;
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
 
             -webkit-font-smoothing: none;
+
             -moz-osx-font-smoothing: grayscale;
 
             text-rendering: geometricPrecision;
 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            -webkit-print-color-adjust:
+                exact !important;
+
+            print-color-adjust:
+                exact !important;
         }
+
+
+        /* =========================================================
+           اللوجو في المعاينة
+           يستخدم اللوجو الأصلي
+        ========================================================= */
 
         .st-logo {
             height: 9mm;
@@ -329,20 +457,31 @@
             display: flex;
 
             justify-content: center;
+
             align-items: center;
 
             margin-bottom: 2px;
         }
 
+
         .st-logo img {
             max-height: 100%;
+
             max-width: 40mm;
 
             object-fit: contain;
         }
 
+
+        /* =========================================================
+           اسم المريض في المعاينة
+        ========================================================= */
+
         .st-name {
-            font-family: Tahoma, Arial, sans-serif;
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
 
             font-size: 15px;
 
@@ -363,13 +502,23 @@
             overflow: hidden;
 
             padding-bottom: 2px;
+
             margin-bottom: 2px;
 
-            -webkit-text-stroke: 0.15px #000000;
+            -webkit-text-stroke:
+                0.15px #000000;
         }
 
+
+        /* =========================================================
+           الرقم الموحد
+        ========================================================= */
+
         .st-unified {
-            font-family: Tahoma, Arial, sans-serif;
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
 
             font-size: 14px;
 
@@ -383,11 +532,16 @@
 
             white-space: nowrap;
 
-            -webkit-text-stroke: 0.1px #000000;
+            -webkit-text-stroke:
+                0.1px #000000;
         }
 
+
         .st-label {
-            font-family: Tahoma, Arial, sans-serif;
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
 
             font-weight: 700;
 
@@ -395,6 +549,7 @@
 
             color: #000000 !important;
         }
+
 
         /* =========================================================
            منطقة الطباعة
@@ -404,48 +559,55 @@
             display: none;
         }
 
+
         /*
-            صورة الـ Bitmap الخاصة بالطباعة
+            Bitmap الخاص بالطباعة
 
             400 × 240 pixels
-            = 50 × 30 mm
-            على 203 DPI تقريباً
+
+            50 × 30 mm
+
+            203 DPI تقريباً
         */
 
         .thermal-print-image {
             display: block;
 
             width: 50mm !important;
+
             height: 30mm !important;
 
             margin: 0 !important;
+
             padding: 0 !important;
 
             border: none !important;
 
             background: #ffffff;
 
-            /*
-               لا نستخدم pixelated هنا
-               حتى لا تظهر الحواف بشكل مبالغ فيه
-            */
             image-rendering: auto;
         }
 
+
         /* =========================================================
-           PRINT
+           إعدادات الطباعة
         ========================================================= */
 
         @media print {
 
             * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+                -webkit-print-color-adjust:
+                    exact !important;
+
+                print-color-adjust:
+                    exact !important;
             }
+
 
             html,
             body {
                 margin: 0 !important;
+
                 padding: 0 !important;
 
                 width: 50mm !important;
@@ -455,14 +617,17 @@
                 color: #000000 !important;
             }
 
+
             body {
                 display: block !important;
             }
+
 
             .no-print,
             .app-container {
                 display: none !important;
             }
+
 
             #print-container {
                 display: block !important;
@@ -470,41 +635,55 @@
                 width: 50mm !important;
 
                 margin: 0 !important;
+
                 padding: 0 !important;
             }
 
+
             @page {
                 size: 50mm 30mm;
+
                 margin: 0;
             }
+
 
             .thermal-print-image {
                 display: block !important;
 
                 width: 50mm !important;
+
                 height: 30mm !important;
 
                 margin: 0 !important;
+
                 padding: 0 !important;
 
                 page-break-after: always;
+
                 break-after: page;
 
                 background: #ffffff !important;
 
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+                -webkit-print-color-adjust:
+                    exact !important;
+
+                print-color-adjust:
+                    exact !important;
             }
+
 
             .thermal-print-image:last-child {
                 page-break-after: auto;
+
                 break-after: auto;
             }
         }
     </style>
 </head>
 
+
 <body>
+
 
     <!-- =========================================================
          واجهة البرنامج
@@ -512,21 +691,38 @@
 
     <div class="app-container no-print">
 
+
+        <!-- اللوجو الأصلي للواجهة فقط -->
+
         <div class="hospital-logo">
+
             <img
                 src="MEpics/Picture1.png"
                 alt="مستشفى صيدناوي"
-                onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
+                onerror="
+                    this.onerror=null;
+                    this.src='TWEAKS/MEpics/Picture1.png';
+                "
             >
+
         </div>
 
-        <h2>طباعة استيكر المريض</h2>
+
+        <h2>
+            طباعة استيكر المريض
+        </h2>
+
+
+        <!-- =====================================================
+             حالة البيانات
+        ===================================================== -->
 
         <div class="status-row">
 
             <div id="loading-msg">
                 جاري تحميل البيانات من الشيت... ⏳
             </div>
+
 
             <button
                 type="button"
@@ -540,6 +736,11 @@
 
         </div>
 
+
+        <!-- =====================================================
+             البحث
+        ===================================================== -->
+
         <div class="search-box">
 
             <input
@@ -550,6 +751,7 @@
                 autocomplete="off"
             >
 
+
             <div
                 id="suggestions"
                 class="suggestions-box"
@@ -557,11 +759,17 @@
 
         </div>
 
+
+        <!-- =====================================================
+             عدد النسخ
+        ===================================================== -->
+
         <div class="copies-box">
 
             <label for="copies-count">
                 عدد النسخ (الستيكرات):
             </label>
+
 
             <input
                 type="number"
@@ -573,27 +781,47 @@
 
         </div>
 
+
+        <!-- =====================================================
+             المعاينة
+        ===================================================== -->
+
         <div class="preview-section">
 
             <div class="preview-title">
+
                 معاينة الاستيكر
-                (يمكن تعديل النص يدوياً قبل الطباعة)
+
+                <br>
+
+                يمكن تعديل النص يدوياً قبل الطباعة
+
             </div>
+
 
             <div
                 class="sticker"
                 id="preview-sticker"
             >
 
+
+                <!-- اللوجو الأصلي للمعاينة -->
+
                 <div class="st-logo">
 
                     <img
                         src="MEpics/Picture1.png"
                         alt="Logo"
-                        onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
+                        onerror="
+                            this.onerror=null;
+                            this.src='TWEAKS/MEpics/Picture1.png';
+                        "
                     >
 
                 </div>
+
+
+                <!-- اسم المريض -->
 
                 <div
                     class="st-name"
@@ -603,11 +831,15 @@
                     اسم المريض
                 </div>
 
+
+                <!-- الرقم الموحد -->
+
                 <div class="st-unified">
 
                     <span class="st-label">
                         رقم موحد:
                     </span>
+
 
                     <span
                         id="st-unified-id"
@@ -621,6 +853,11 @@
             </div>
 
         </div>
+
+
+        <!-- =====================================================
+             زر الطباعة
+        ===================================================== -->
 
         <button
             class="btn-print"
@@ -641,59 +878,97 @@
 
 <script>
 
+
     /* =========================================================
        إعدادات الطباعة الحرارية
     ========================================================= */
 
+
     const PRINT_DPI = 203;
 
-    /*
-       50mm على 203 DPI
-       = 399.6 ≈ 400 pixels
 
-       30mm على 203 DPI
-       = 239.8 ≈ 240 pixels
+    /*
+        XP-233B
+
+        50mm × 203 DPI
+        ≈ 400 pixels
+
+        30mm × 203 DPI
+        ≈ 240 pixels
     */
 
+
     const PRINT_WIDTH = 400;
+
     const PRINT_HEIGHT = 240;
 
 
+
     /* =========================================================
-       رابط الشيت
+       رابط Google Sheets
     ========================================================= */
+
 
     const CSV_URL =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
 
+
+    /* =========================================================
+       عناصر الصفحة
+    ========================================================= */
+
+
     let patientsList = [];
 
+
     const searchInput =
-        document.getElementById('search-input');
+        document.getElementById(
+            'search-input'
+        );
+
 
     const suggestionsBox =
-        document.getElementById('suggestions');
+        document.getElementById(
+            'suggestions'
+        );
+
 
     const loadingMsg =
-        document.getElementById('loading-msg');
+        document.getElementById(
+            'loading-msg'
+        );
+
 
     const refreshBtn =
-        document.getElementById('refresh-btn');
+        document.getElementById(
+            'refresh-btn'
+        );
+
 
     const copiesCount =
-        document.getElementById('copies-count');
+        document.getElementById(
+            'copies-count'
+        );
+
 
     const stName =
-        document.getElementById('st-name');
+        document.getElementById(
+            'st-name'
+        );
+
 
     const stUnifiedId =
-        document.getElementById('st-unified-id');
+        document.getElementById(
+            'st-unified-id'
+        );
+
 
 
     /* =========================================================
        توحيد البحث العربي
     ========================================================= */
+
 
     function normalizeArabic(text) {
 
@@ -701,23 +976,43 @@
             .trim()
             .toLowerCase()
 
-            .replace(/[\u064B-\u065F\u0670]/g, '')
+            .replace(
+                /[\u064B-\u065F\u0670]/g,
+                ''
+            )
 
-            .replace(/[أإآٱ]/g, 'ا')
+            .replace(
+                /[أإآٱ]/g,
+                'ا'
+            )
 
-            .replace(/ى/g, 'ي')
+            .replace(
+                /ى/g,
+                'ي'
+            )
 
-            .replace(/ة/g, 'ه')
+            .replace(
+                /ة/g,
+                'ه'
+            )
 
-            .replace(/[ؤئ]/g, 'ء')
+            .replace(
+                /[ؤئ]/g,
+                'ء'
+            )
 
-            .replace(/\s+/g, ' ');
+            .replace(
+                /\s+/g,
+                ' '
+            );
     }
+
 
 
     /* =========================================================
        قراءة CSV
     ========================================================= */
+
 
     function parseCSVLine(text) {
 
@@ -727,9 +1022,15 @@
 
         let inQuotes = false;
 
-        for (let i = 0; i < text.length; i++) {
+
+        for (
+            let i = 0;
+            i < text.length;
+            i++
+        ) {
 
             const char = text[i];
+
 
             if (char === '"') {
 
@@ -742,23 +1043,28 @@
 
                     i++;
 
-                } else {
-
-                    inQuotes = !inQuotes;
                 }
 
+                else {
+
+                    inQuotes =
+                        !inQuotes;
+                }
             }
+
 
             else if (
                 char === ',' &&
                 !inQuotes
             ) {
 
-                result.push(current.trim());
+                result.push(
+                    current.trim()
+                );
 
                 current = '';
-
             }
+
 
             else {
 
@@ -766,18 +1072,25 @@
             }
         }
 
-        result.push(current.trim());
+
+        result.push(
+            current.trim()
+        );
+
 
         return result;
     }
 
 
+
     let dataStatus = 'loading';
 
 
+
     /* =========================================================
-       تحميل البيانات
+       تحميل البيانات من الشيت
     ========================================================= */
+
 
     async function loadData() {
 
@@ -785,50 +1098,81 @@
 
         refreshBtn.disabled = true;
 
-        loadingMsg.style.display = 'block';
+
+        loadingMsg.style.display =
+            'block';
+
 
         loadingMsg.innerText =
             'جاري تحميل البيانات من الشيت... ⏳';
 
-        loadingMsg.style.color = '#2563eb';
+
+        loadingMsg.style.color =
+            '#2563eb';
+
 
         try {
 
-            const response = await fetch(
-                CSV_URL +
-                (CSV_URL.includes('?') ? '&' : '?') +
-                'cachebust=' +
-                Date.now()
-            );
+            const response =
+                await fetch(
+                    CSV_URL +
+                    (
+                        CSV_URL.includes('?')
+                            ? '&'
+                            : '?'
+                    ) +
+                    'cachebust=' +
+                    Date.now()
+                );
+
 
             if (!response.ok) {
-                throw new Error("Error fetching CSV");
+
+                throw new Error(
+                    "Error fetching CSV"
+                );
             }
+
 
             const csvText =
                 await response.text();
+
 
             const lines =
                 csvText
                     .split(/\r\n|\n/)
                     .filter(
-                        l => l.trim() !== ''
+                        l =>
+                            l.trim() !== ''
                     );
+
 
             if (lines.length < 2) {
 
                 loadingMsg.innerText =
                     '⚠️ لا توجد بيانات في الشيت';
 
+
                 loadingMsg.style.color =
                     '#dc2626';
 
-                dataStatus = 'error';
 
-                refreshBtn.disabled = false;
+                dataStatus =
+                    'error';
+
+
+                refreshBtn.disabled =
+                    false;
+
 
                 return;
             }
+
+
+
+            /* =================================================
+               قراءة العناوين
+            ================================================= */
 
 
             const headers =
@@ -836,7 +1180,10 @@
                     .map(
                         h =>
                             h
-                                .replace(/^"|"$/g, '')
+                                .replace(
+                                    /^"|"$/g,
+                                    ''
+                                )
                                 .trim()
                     );
 
@@ -860,6 +1207,12 @@
             patientsList = [];
 
 
+
+            /* =================================================
+               قراءة المرضى
+            ================================================= */
+
+
             for (
                 let i = 1;
                 i < lines.length;
@@ -871,7 +1224,10 @@
                         .map(
                             c =>
                                 c
-                                    .replace(/^"|"$/g, '')
+                                    .replace(
+                                        /^"|"$/g,
+                                        ''
+                                    )
                                     .trim()
                         );
 
@@ -896,52 +1252,76 @@
             }
 
 
+
+            /* =================================================
+               نجاح التحميل
+            ================================================= */
+
+
             loadingMsg.innerText =
                 `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
+
 
             loadingMsg.style.color =
                 '#10b981';
 
-            dataStatus = 'ready';
 
-            refreshBtn.disabled = false;
+            dataStatus =
+                'ready';
 
 
-            setTimeout(() => {
+            refreshBtn.disabled =
+                false;
 
-                loadingMsg.style.display =
-                    'none';
 
-            }, 3000);
+            setTimeout(
+                () => {
+
+                    loadingMsg.style.display =
+                        'none';
+
+                },
+                3000
+            );
 
         }
+
 
         catch (error) {
 
             console.error(error);
 
+
             loadingMsg.innerText =
                 '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+
 
             loadingMsg.style.color =
                 '#dc2626';
 
-            dataStatus = 'error';
 
-            refreshBtn.disabled = false;
+            dataStatus =
+                'error';
+
+
+            refreshBtn.disabled =
+                false;
         }
     }
 
 
+
     /* =========================================================
-       البحث
+       البحث والمقترحات
     ========================================================= */
+
 
     let currentMatches = [];
 
     let activeIndex = -1;
 
     let selectedPatient = null;
+
 
 
     function renderActiveHighlight() {
@@ -951,9 +1331,12 @@
                 '.suggestion-item[data-idx]'
             );
 
+
         items.forEach(
             el =>
-                el.classList.remove('active')
+                el.classList.remove(
+                    'active'
+                )
         );
 
 
@@ -963,7 +1346,9 @@
         ) {
 
             items[activeIndex]
-                .classList.add('active');
+                .classList.add(
+                    'active'
+                );
 
 
             items[activeIndex]
@@ -972,6 +1357,7 @@
                 });
         }
     }
+
 
 
     searchInput.addEventListener(
@@ -984,11 +1370,16 @@
                 );
 
 
-            suggestionsBox.innerHTML = '';
+            suggestionsBox.innerHTML =
+                '';
 
-            activeIndex = -1;
 
-            selectedPatient = null;
+            activeIndex =
+                -1;
+
+
+            selectedPatient =
+                null;
 
 
             if (!query) {
@@ -997,10 +1388,14 @@
                     .classList
                     .remove('open');
 
-                currentMatches = [];
+
+                currentMatches =
+                    [];
+
 
                 return;
             }
+
 
 
             currentMatches =
@@ -1011,7 +1406,11 @@
                                 p.name
                             ).includes(query)
                     )
-                    .slice(0, 10);
+                    .slice(
+                        0,
+                        10
+                    );
+
 
 
             if (
@@ -1023,21 +1422,28 @@
 
             }
 
+
             else {
 
                 currentMatches.forEach(
-                    (patient, idx) => {
+                    (
+                        patient,
+                        idx
+                    ) => {
 
                         const div =
                             document.createElement(
                                 'div'
                             );
 
+
                         div.className =
                             'suggestion-item';
 
+
                         div.dataset.idx =
                             idx;
+
 
                         div.innerText =
                             patient.name;
@@ -1048,8 +1454,10 @@
 
                                 ev.preventDefault();
 
+
                                 activeIndex =
                                     idx;
+
 
                                 fillSticker(
                                     patient
@@ -1058,7 +1466,9 @@
 
 
                         suggestionsBox
-                            .appendChild(div);
+                            .appendChild(
+                                div
+                            );
                     }
                 );
             }
@@ -1071,6 +1481,12 @@
     );
 
 
+
+    /* =========================================================
+       لوحة المفاتيح
+    ========================================================= */
+
+
     searchInput.addEventListener(
         'keydown',
         (e) => {
@@ -1081,25 +1497,36 @@
                     .contains('open') ||
                 currentMatches.length === 0
             ) {
+
                 return;
             }
 
 
-            if (e.key === 'ArrowDown') {
+            if (
+                e.key === 'ArrowDown'
+            ) {
 
                 e.preventDefault();
 
+
                 activeIndex =
-                    (activeIndex + 1) %
+                    (
+                        activeIndex +
+                        1
+                    ) %
                     currentMatches.length;
+
 
                 renderActiveHighlight();
             }
 
 
-            else if (e.key === 'ArrowUp') {
+            else if (
+                e.key === 'ArrowUp'
+            ) {
 
                 e.preventDefault();
+
 
                 activeIndex =
                     (
@@ -1109,17 +1536,23 @@
                     ) %
                     currentMatches.length;
 
+
                 renderActiveHighlight();
             }
 
 
-            else if (e.key === 'Enter') {
+            else if (
+                e.key === 'Enter'
+            ) {
 
                 e.preventDefault();
 
+
                 if (
                     activeIndex >= 0 &&
-                    currentMatches[activeIndex]
+                    currentMatches[
+                        activeIndex
+                    ]
                 ) {
 
                     fillSticker(
@@ -1131,7 +1564,9 @@
             }
 
 
-            else if (e.key === 'Escape') {
+            else if (
+                e.key === 'Escape'
+            ) {
 
                 suggestionsBox
                     .classList
@@ -1141,29 +1576,40 @@
     );
 
 
+
     searchInput.addEventListener(
         'blur',
-        () =>
+        () => {
+
             setTimeout(
-                () =>
+                () => {
+
                     suggestionsBox
                         .classList
-                        .remove('open'),
+                        .remove('open');
+
+                },
                 150
-            )
+            );
+        }
     );
+
 
 
     /* =========================================================
        تعبئة الاستيكر
     ========================================================= */
 
+
     function fillSticker(patient) {
 
-        selectedPatient = patient;
+        selectedPatient =
+            patient;
+
 
         searchInput.value =
             patient.name;
+
 
         suggestionsBox
             .classList
@@ -1179,50 +1625,79 @@
     }
 
 
+
     /* =========================================================
-       تحميل صورة اللوجو
+       تحميل اللوجو الحراري
+       
+       مهم:
+       هذا اللوجو يستخدم للطباعة فقط.
+       
+       المعاينة تظل باستخدام Picture1.png
     ========================================================= */
+
 
     function loadLogoImage() {
 
-        return new Promise((resolve, reject) => {
+        return new Promise(
+            (resolve, reject) => {
 
-        const img = new Image();
+                const img =
+                    new Image();
 
-        img.onload = () => resolve(img);
 
-        img.onerror = () => {
+                img.onload =
+                    () => {
 
-            const fallback = new Image();
+                        resolve(img);
+                    };
 
-            fallback.onload = () => resolve(fallback);
 
-            fallback.onerror = reject;
+                img.onerror =
+                    () => {
 
-            fallback.src =
-                'TWEAKS/MEpics/sidnawi_thermal_logo.png';
-        };
+                        const fallback =
+                            new Image();
 
-        /*
-         * هذا اللوجو يستخدم للطباعة فقط.
-         * اللوجو الأصلي في واجهة الموقع لن يتغير.
-         */
-        img.src =
-            'MEpics/sidnawi_thermal_logo.png';
-    });
+
+                        fallback.onload =
+                            () => {
+
+                                resolve(
+                                    fallback
+                                );
+                            };
+
+
+                        fallback.onerror =
+                            reject;
+
+
+                        fallback.src =
+                            'TWEAKS/MEpics/sidnawi_thermal_logo.png';
+                    };
+
+
+                /*
+                   اللوجو الأسود المخصص
+                   للطباعة الحرارية
+                */
+
+                img.src =
+                    'MEpics/sidnawi_thermal_logo.png';
+            }
+        );
     }
+
 
 
     /* =========================================================
        رسم النص العربي على Canvas
        
-       هذه أهم خطوة في تحسين الطباعة.
+       دعم RTL
        
-       400 × 240 pixels
-       203 DPI
-       
-       أسود حقيقي 100%
+       عربي + أرقام + رموز
     ========================================================= */
+
 
     function drawTextRTL(
         ctx,
@@ -1235,24 +1710,66 @@
 
         ctx.save();
 
-        ctx.direction = 'rtl';
 
-        ctx.textAlign = 'center';
+        /* -----------------------------------------------------
+           اتجاه الـ Canvas نفسه RTL
+        ----------------------------------------------------- */
 
-        ctx.textBaseline = 'middle';
+        ctx.canvas.dir =
+            'rtl';
 
-        ctx.font = font;
 
-        ctx.fillStyle = '#000000';
+        /* -----------------------------------------------------
+           اتجاه النص RTL
+        ----------------------------------------------------- */
 
-        ctx.strokeStyle = '#000000';
+        ctx.direction =
+            'rtl';
 
-        /*
-           Stroke بسيط جداً لزيادة امتلاء
-           الحروف بدون تخريب شكلها.
-        */
 
-        ctx.lineWidth = 0.35;
+        /* -----------------------------------------------------
+           المحاذاة
+        ----------------------------------------------------- */
+
+        ctx.textAlign =
+            'center';
+
+
+        ctx.textBaseline =
+            'middle';
+
+
+        /* -----------------------------------------------------
+           الخط
+        ----------------------------------------------------- */
+
+        ctx.font =
+            font;
+
+
+        /* -----------------------------------------------------
+           الأسود الخالص
+        ----------------------------------------------------- */
+
+        ctx.fillStyle =
+            '#000000';
+
+
+        ctx.strokeStyle =
+            '#000000';
+
+
+        /* -----------------------------------------------------
+           زيادة بسيطة في سماكة الحروف
+        ----------------------------------------------------- */
+
+        ctx.lineWidth =
+            0.35;
+
+
+        /* -----------------------------------------------------
+           Stroke
+        ----------------------------------------------------- */
 
         ctx.strokeText(
             text,
@@ -1261,6 +1778,11 @@
             maxWidth
         );
 
+
+        /* -----------------------------------------------------
+           Fill
+        ----------------------------------------------------- */
+
         ctx.fillText(
             text,
             x,
@@ -1268,38 +1790,76 @@
             maxWidth
         );
 
+
         ctx.restore();
     }
 
 
+
     /* =========================================================
-       إنشاء Bitmap واحد للاستكر
+       إنشاء Bitmap للاستكر
     ========================================================= */
+
 
     async function createThermalSticker() {
 
+        /* -----------------------------------------------------
+           إنشاء Canvas
+        ----------------------------------------------------- */
+
         const canvas =
-            document.createElement('canvas');
+            document.createElement(
+                'canvas'
+            );
+
 
         canvas.width =
             PRINT_WIDTH;
+
 
         canvas.height =
             PRINT_HEIGHT;
 
 
+        /* -----------------------------------------------------
+           RTL للـ Canvas بالكامل
+        ----------------------------------------------------- */
+
+        canvas.dir =
+            'rtl';
+
+
+
+        /* -----------------------------------------------------
+           Context
+        ----------------------------------------------------- */
+
         const ctx =
-            canvas.getContext('2d', {
-                alpha: false
-            });
+            canvas.getContext(
+                '2d',
+                {
+                    alpha: false
+                }
+            );
 
 
-        /*
-           خلفية بيضاء حقيقية
-        */
+
+        /* -----------------------------------------------------
+           RTL للـ Context
+        ----------------------------------------------------- */
+
+        ctx.direction =
+            'rtl';
+
+
+
+        /* -----------------------------------------------------
+           خلفية بيضاء خالصة
+        ----------------------------------------------------- */
 
         ctx.fillStyle =
             '#ffffff';
+
 
         ctx.fillRect(
             0,
@@ -1309,26 +1869,28 @@
         );
 
 
-        /*
-           مهم جداً:
-           نستخدم نص المعاينة الحالي،
-           وبالتالي لو المستخدم عدّل الاسم
-           يدوياً سيتم طباعة التعديل.
-        */
+
+        /* -----------------------------------------------------
+           بيانات المريض الحالية
+        ----------------------------------------------------- */
 
         const name =
             stName.innerText
-                .trim() || '---';
+                .trim() ||
+            '---';
 
 
         const unified =
             stUnifiedId.innerText
-                .trim() || '---';
+                .trim() ||
+            '---';
+
 
 
         /* =====================================================
-           اللوجو
+           اللوجو الحراري
         ===================================================== */
+
 
         try {
 
@@ -1337,17 +1899,20 @@
 
 
             /*
-               مساحة اللوجو تقريباً:
-               40mm × 9mm
+               أقصى مساحة للوجو
             */
 
-            const maxLogoWidth = 320;
+            const maxLogoWidth =
+                320;
 
-            const maxLogoHeight = 72;
+
+            const maxLogoHeight =
+                72;
 
 
             const ratio =
                 Math.min(
+
                     maxLogoWidth /
                         logo.naturalWidth,
 
@@ -1377,9 +1942,10 @@
                 8;
 
 
+
             /*
-               لا نستخدم smoothing
-               قدر الإمكان أثناء تجهيز الصورة.
+               إيقاف تنعيم الصورة
+               للحفاظ على حدة الطباعة
             */
 
             ctx.imageSmoothingEnabled =
@@ -1388,13 +1954,16 @@
 
             ctx.drawImage(
                 logo,
+
                 logoX,
                 logoY,
+
                 logoWidth,
                 logoHeight
             );
 
         }
+
 
         catch (error) {
 
@@ -1405,43 +1974,55 @@
         }
 
 
+
         /* =====================================================
            اسم المريض
         ===================================================== */
 
-        /*
-           منطقة الاسم:
-
-           تقريباً من y=95
-           إلى y=165
-        */
 
         let nameText =
             name;
 
 
+        let nameFontSize =
+            38;
+
+
         /*
-           لو الاسم طويل جداً
-           نحاول تصغيره تلقائياً.
+           تصغير الخط تلقائياً
+           لو الاسم طويل
         */
 
-        let nameFontSize = 38;
+        if (
+            nameText.length > 24
+        ) {
 
-
-        if (nameText.length > 24) {
-            nameFontSize = 34;
+            nameFontSize =
+                34;
         }
 
-        if (nameText.length > 32) {
-            nameFontSize = 30;
+
+        if (
+            nameText.length > 32
+        ) {
+
+            nameFontSize =
+                30;
         }
 
-        if (nameText.length > 40) {
-            nameFontSize = 27;
+
+        if (
+            nameText.length > 40
+        ) {
+
+            nameFontSize =
+                27;
         }
+
 
 
         drawTextRTL(
+
             ctx,
 
             nameText,
@@ -1456,15 +2037,18 @@
         );
 
 
+
         /* =====================================================
            الرقم الموحد
         ===================================================== */
+
 
         const unifiedText =
             `رقم موحد: ${unified}`;
 
 
         drawTextRTL(
+
             ctx,
 
             unifiedText,
@@ -1479,9 +2063,11 @@
         );
 
 
-        /*
-           تحويل Canvas إلى PNG
-        */
+
+        /* =====================================================
+           Canvas → PNG
+        ===================================================== */
+
 
         return canvas.toDataURL(
             'image/png'
@@ -1489,9 +2075,11 @@
     }
 
 
+
     /* =========================================================
-       الطباعة
+       طباعة الاستيكرات
     ========================================================= */
+
 
     async function printStickers() {
 
@@ -1501,9 +2089,11 @@
             );
 
 
-        /* -----------------------------------------------------
-           التأكد من البيانات
-        ----------------------------------------------------- */
+
+        /* =====================================================
+           التحقق من البيانات
+        ===================================================== */
+
 
         if (
             dataStatus === 'loading'
@@ -1514,10 +2104,13 @@
                     '⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟'
                 );
 
+
             if (!proceed) {
+
                 return;
             }
         }
+
 
 
         if (
@@ -1531,10 +2124,18 @@
                     '⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟'
                 );
 
+
             if (!proceed) {
+
                 return;
             }
         }
+
+
+
+        /* =====================================================
+           عدد النسخ
+        ===================================================== */
 
 
         let copies =
@@ -1548,31 +2149,42 @@
             isNaN(copies) ||
             copies < 1
         ) {
+
             copies = 1;
         }
 
 
-        if (copies > 50) {
+        if (
+            copies > 50
+        ) {
+
             copies = 50;
         }
 
 
-        if (copies > 10) {
+
+        if (
+            copies > 10
+        ) {
 
             const proceed =
                 confirm(
                     `عدد النسخ المطلوب ${copies} استيكر. هل أنت متأكد؟`
                 );
 
+
             if (!proceed) {
+
                 return;
             }
         }
 
 
-        /*
-           إظهار حالة تجهيز الطباعة
-        */
+
+        /* =====================================================
+           زر الطباعة
+        ===================================================== */
+
 
         const printButton =
             document.querySelector(
@@ -1584,28 +2196,41 @@
             printButton.innerText;
 
 
-        printButton.disabled = true;
+        printButton.disabled =
+            true;
+
 
         printButton.innerText =
             '⏳ تجهيز الطباعة...';
 
 
+
         try {
+
+            /* -------------------------------------------------
+               تنظيف الحاوية
+            ------------------------------------------------- */
 
             printContainer.innerHTML =
                 '';
 
 
-            /*
-               إنشاء Bitmap واحد فقط
-               ثم استخدامه لكل النسخ.
 
-               هذا أفضل وأسرع،
-               لأن كل النسخ متطابقة.
-            */
+            /* -------------------------------------------------
+               إنشاء Bitmap واحد
+            ------------------------------------------------- */
 
             const imageData =
                 await createThermalSticker();
+
+
+
+            /* -------------------------------------------------
+               إنشاء النسخ
+            ------------------------------------------------- */
+
+            const imagePromises =
+                [];
 
 
             for (
@@ -1624,10 +2249,6 @@
                     'thermal-print-image';
 
 
-                img.src =
-                    imageData;
-
-
                 img.width =
                     PRINT_WIDTH;
 
@@ -1636,49 +2257,121 @@
                     PRINT_HEIGHT;
 
 
+                img.src =
+                    imageData;
+
+
                 printContainer
-                    .appendChild(img);
+                    .appendChild(
+                        img
+                    );
+
+
+                /*
+                   انتظار تحميل الصورة
+                   قبل الطباعة
+                */
+
+                if (
+                    img.decode
+                ) {
+
+                    imagePromises.push(
+                        img.decode()
+                            .catch(
+                                () => {}
+                            )
+                    );
+
+                }
+
+                else {
+
+                    imagePromises.push(
+                        new Promise(
+                            resolve => {
+
+                                if (
+                                    img.complete
+                                ) {
+
+                                    resolve();
+
+                                }
+
+                                else {
+
+                                    img.onload =
+                                        resolve;
+
+                                    img.onerror =
+                                        resolve;
+                                }
+                            }
+                        )
+                    );
+                }
             }
 
 
-            /*
-               ننتظر حتى يتأكد المتصفح
-               أن الصور أصبحت جاهزة.
-            */
 
-            await new Promise(
-                resolve =>
-                    requestAnimationFrame(
-                        () =>
-                            requestAnimationFrame(
-                                resolve
-                            )
-                    )
+            /* -------------------------------------------------
+               التأكد أن كل الصور جاهزة
+            ------------------------------------------------- */
+
+            await Promise.all(
+                imagePromises
             );
 
 
-            /*
+
+            /* -------------------------------------------------
+               إعطاء المتصفح فرصة لإكمال الرسم
+            ------------------------------------------------- */
+
+            await new Promise(
+                resolve => {
+
+                    requestAnimationFrame(
+                        () => {
+
+                            requestAnimationFrame(
+                                resolve
+                            );
+                        }
+                    );
+                }
+            );
+
+
+
+            /* -------------------------------------------------
                الطباعة
-            */
+            ------------------------------------------------- */
 
             window.print();
 
         }
 
+
         catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             alert(
                 'حدث خطأ أثناء تجهيز الاستيكر للطباعة.'
             );
-
         }
+
 
         finally {
 
             printButton.disabled =
                 false;
+
 
             printButton.innerText =
                 oldButtonText;
@@ -1686,9 +2379,11 @@
     }
 
 
+
     /* =========================================================
-       تشغيل تحميل البيانات
+       تحميل البيانات عند فتح الصفحة
     ========================================================= */
+
 
     loadData();
 
