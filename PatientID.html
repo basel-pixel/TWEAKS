@@ -280,8 +280,8 @@
             }
 
             @page {
-                size: var(--label-width) var(--label-height);
-                margin: 0; /* بدون هوامش عشان يطبع من الحافة للحافة */
+                size: 50mm 30mm; /* استبدال المتغيرات بأرقام ثابتة */
+                margin: 0;
             }
 
             body, html {
@@ -291,10 +291,13 @@
             }
 
             .sticker {
-                border: none !important; /* إزالة إطار المعاينة الوهمي في الطباعة */
+                border: none !important; 
                 margin: 0;
-                padding: 1.5mm; /* هامش داخلي بسيط للنص */
-                page-break-after: always; /* إجبار الطابعة على سحب استيكر جديد لكل نسخة */
+                padding: 1.5mm; 
+                width: 50mm !important; /* تأكيد العرض في الطباعة */
+                height: 30mm !important; /* تأكيد الارتفاع في الطباعة */
+                page-break-after: always; 
+                break-after: page; /* لضمان توافق المتصفحات الحديثة */
             }
 
             .sticker:last-child {
