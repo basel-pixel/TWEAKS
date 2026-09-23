@@ -208,19 +208,23 @@
 
         /* ==================== تصميم الاستيكر المطبوع ==================== */
         .sticker {
-            width: var(--label-width);
+           width: var(--label-width);
             height: var(--label-height);
             background: #fff;
-            border: 1px dashed #94a3b8; /* إطار للمعاينة على الشاشة */
+            border: 1px dashed #94a3b8;
             box-sizing: border-box;
             padding: 2mm;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* توزيع المسافات بين اللوجو والاسم والرقم */
+            justify-content: space-between;
             align-items: center;
             overflow: hidden;
-            font-family: 'Cairo', sans-serif;
             color: #000;
+            
+            /* التعديلات الجديدة لزيادة الوضوح */
+            font-family: Arial, Tahoma, sans-serif; /* خطوط صريحة للطابعات الحرارية */
+            -webkit-font-smoothing: none; /* إيقاف التنعيم اللي بيعمل نقط رمادية */
+            text-rendering: geometricPrecision;
         }
 
         /* لوجو المستشفى داخل الاستيكر */
