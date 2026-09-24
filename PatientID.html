@@ -10,6 +10,7 @@
 
     <style>
         :root {
+            /* المعاينة على الشاشة ستظل بالعرض لسهولة القراءة */
             --label-width: 50mm;
             --label-height: 30mm;
         }
@@ -70,17 +71,13 @@
         .search-input {
             width: 100%;
             padding: 12px 15px;
-
             border: 2px solid #cbd5e1;
             border-radius: 8px;
-
             font-family: inherit;
             font-size: 15px;
             font-weight: 600;
-
             box-sizing: border-box;
             outline: none;
-
             transition: border-color 0.2s;
         }
 
@@ -236,64 +233,7 @@
             transform: scale(0.97);
         }
 
-        /* الاستيكر الخاص بالمعاينة (بدون صورة اللوجو) */
-        .sticker {
-            width: var(--label-width);
-            height: var(--label-height);
-            background: #ffffff;
-            border: 1px dashed #000000;
-            box-sizing: border-box;
-            padding: 0;
-            position: relative;
-            overflow: hidden;
-            color: #000000 !important;
-            font-family: Tahoma, Arial, sans-serif;
-            -webkit-font-smoothing: none;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: geometricPrecision;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-
-        .preview-st-name {
-            position: absolute;
-            top: 6mm;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-family: Tahoma, Arial, sans-serif;
-            font-size: 18px;
-            font-weight: 900;
-            color: #000000 !important;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 0 2mm;
-        }
-
-        .preview-st-unified {
-            position: absolute;
-            top: 15mm;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-family: Tahoma, Arial, sans-serif;
-            font-size: 13px;
-            font-weight: 900;
-            color: #000000 !important;
-            white-space: nowrap;
-        }
-
-        .preview-st-label {
-            font-weight: 700;
-            font-size: 11px;
-        }
-
-
-        /* =========================================================
-           معاينة مطابقة 100% للطباعة
-           نفس Canvas المستخدم في إنشاء الاستيكر المطبوع
-        ========================================================= */
+        /* المعاينة */
         .exact-preview-wrap {
             width: 100%;
             display: flex;
@@ -341,8 +281,6 @@
 
         .thermal-print-image {
             display: block;
-            width: 50mm !important;
-            height: 30mm !important;
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;
@@ -350,6 +288,9 @@
             image-rendering: auto;
         }
 
+        /* =========================================================
+           إعدادات الطباعة: الورقة ستكون بالطول (30mm عرض × 50mm طول)
+        ========================================================= */
         @media print {
             * {
                 -webkit-print-color-adjust: exact !important;
@@ -359,7 +300,8 @@
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 50mm !important;
+                width: 30mm !important;
+                height: 50mm !important;
                 background: #ffffff !important;
                 color: #000000 !important;
             }
@@ -369,20 +311,21 @@
 
             #print-container {
                 display: block !important;
-                width: 50mm !important;
+                width: 30mm !important;
+                height: 50mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
 
             @page {
-                size: 50mm 30mm;
+                size: 30mm 50mm; /* الورقة بالطول Portrait */
                 margin: 0;
             }
 
             .thermal-print-image {
                 display: block !important;
-                width: 50mm !important;
-                height: 30mm !important;
+                width: 30mm !important;
+                height: 50mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: always;
@@ -428,12 +371,13 @@
             <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
             
             <div class="exact-preview-wrap">
+                <!-- المعاينة بالعرض لسهولة القراءة -->
                 <canvas
                     id="preview-canvas"
                     class="exact-preview-canvas"
                     width="400"
                     height="240"
-                    aria-label="معاينة الاستيكر المطابق للطباعة"
+                    aria-label="معاينة الاستيكر"
                 ></canvas>
 
                 <div class="manual-edit-box">
@@ -460,9 +404,19 @@
     <div id="print-container"></div>
 
 <script>
-    const PRINT_DPI = 203;
-    const PRINT_WIDTH = 400;
-    const PRINT_HEIGHT = 240;
+    /* 
+       المقاس المنطقي (الرسم الداخلي): دائمًا 400 عرض × 240 طول
+       حتى يتم رسم الكلام بشكل عرضي (Landscape).
+    */
+    const LOGICAL_WIDTH = 400;
+    const LOGICAL_HEIGHT = 240;
+
+    /* 
+       مقاس الطباعة الفعلي (Portrait): 240 عرض × 400 طول
+       وسيتم لف الـ Canvas بداخله.
+    */
+    const PRINT_CANVAS_WIDTH = 240;
+    const PRINT_CANVAS_HEIGHT = 400;
 
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
@@ -490,25 +444,20 @@
         let result = [];
         let current = '';
         let inQuotes = false;
-
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
-
             if (char === '"') {
                 if (inQuotes && text[i + 1] === '"') {
-                    current += '"';
-                    i++;
+                    current += '"'; i++;
                 } else {
                     inQuotes = !inQuotes;
                 }
             } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
+                result.push(current.trim()); current = '';
             } else {
                 current += char;
             }
         }
-
         result.push(current.trim());
         return result;
     }
@@ -532,135 +481,56 @@
         loadingMsg.style.color = '#2563eb';
 
         try {
-            /*
-               نضيف cachebust عند كل تحميل/تحديث لضمان قراءة أحدث نسخة.
-               لو المتصفح أو Google رفض الرابط الإضافي لأي سبب، نجرب الرابط الأصلي.
-            */
-            const freshUrl =
-                CSV_URL +
-                (CSV_URL.includes('?') ? '&' : '?') +
-                'cachebust=' +
-                Date.now();
-
-            let response;
-
-            try {
-                response = await fetch(freshUrl, {
-                    cache: 'no-store'
-                });
-            } catch (firstError) {
-                console.warn('Fresh CSV request failed, retrying original URL:', firstError);
-
-                response = await fetch(CSV_URL, {
-                    cache: 'no-store'
-                });
-            }
+            // استخدام رابط بسيط مع كسر الكاش لتجنب حظر جوجل (CORS)
+            const freshUrl = CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+            const response = await fetch(freshUrl);
 
             if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
+                throw new Error("Error fetching CSV");
             }
 
             const csvText = await response.text();
 
-            if (!csvText || !csvText.trim()) {
-                throw new Error('Empty CSV');
-            }
-
-            /*
-               نرجع لطريقة القراءة البسيطة التي كانت شغالة في نسختك الأصلية.
-            */
             const lines = csvText
-                .replace(/^\uFEFF/, '')
+                .replace(/^\uFEFF/, '') // إزالة أي رموز غير مرئية في بداية الملف
                 .split(/\r\n|\n/)
-                .filter(line => line.trim() !== '');
+                .filter(l => l.trim() !== '');
 
             if (lines.length < 2) {
-                throw new Error('No data rows');
+                throw new Error("No data in sheet");
             }
 
-            const headers = parseCSVLine(lines[0])
-                .map(header =>
-                    header
-                        .replace(/^"|"$/g, '')
-                        .replace(/^\uFEFF/, '')
-                        .trim()
-                );
-
-            /*
-               نفس منطق نسختك الأصلية:
-               أول عمود يحتوي "اسم" أو "المريض"
-               وأول عمود يحتوي "موحد" أو "طبي".
-            */
-            const colName = headers.findIndex(
-                header =>
-                    header.includes('اسم') ||
-                    header.includes('المريض')
-            );
-
-            const colUnified = headers.findIndex(
-                header =>
-                    header.includes('موحد') ||
-                    header.includes('طبي')
-            );
-
-            if (colName === -1) {
-                throw new Error(
-                    'لم يتم العثور على عمود اسم المريض. الأعمدة: ' +
-                    headers.join(' | ')
-                );
-            }
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
+            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
 
             const newPatientsList = [];
 
             for (let i = 1; i < lines.length; i++) {
-                const cols = parseCSVLine(lines[i])
-                    .map(cell =>
-                        cell
-                            .replace(/^"|"$/g, '')
-                            .trim()
-                    );
-
-                const patientName = cols[colName] || '';
-
-                if (!patientName) continue;
-
-                newPatientsList.push({
-                    name: patientName,
-                    unifiedId:
-                        colUnified !== -1
-                            ? (cols[colUnified] || '')
-                            : ''
-                });
-            }
-
-            if (newPatientsList.length === 0) {
-                throw new Error('No valid patients');
+                const cols = parseCSVLine(lines[i]);
+                if (colName !== -1 && cols[colName]) {
+                    newPatientsList.push({
+                        name: cols[colName].replace(/^"|"$/g, '').trim() || '',
+                        unifiedId: (colUnified !== -1 && cols[colUnified]) ? cols[colUnified].replace(/^"|"$/g, '').trim() : ''
+                    });
+                }
             }
 
             patientsList = newPatientsList;
             dataStatus = 'ready';
             dataLoadedOnce = true;
 
-            /*
-               اقفل نتائج البحث القديمة؛ أول ما تكتب من جديد
-               البحث هيستخدم القائمة الجديدة.
-            */
+            // تصفير البحث
             currentMatches = [];
             activeIndex = -1;
             suggestionsBox.innerHTML = '';
             suggestionsBox.classList.remove('open');
 
-            /*
-               لو المريض الحالي موجود بعد التحديث بنفس الاسم،
-               نحدّث الرقم الموحد من الشيت.
-            */
+            // تحديث بيانات المريض المختار إذا تغيرت في الشيت
             if (selectedPatient) {
                 const updatedPatient = patientsList.find(
-                    patient =>
-                        normalizeArabic(patient.name) ===
-                        normalizeArabic(selectedPatient.name)
+                    p => normalizeArabic(p.name) === normalizeArabic(selectedPatient.name)
                 );
-
                 if (updatedPatient) {
                     selectedPatient = updatedPatient;
                     stName.value = updatedPatient.name || '---';
@@ -671,52 +541,34 @@
 
             const now = new Date();
             const timeText = now.toLocaleTimeString('ar-EG', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
             });
 
-            loadingMsg.innerText =
-                `✅ تم تحميل ${patientsList.length} مريض — آخر تحديث ${timeText}`;
-
+            loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض — آخر تحديث ${timeText}`;
             loadingMsg.style.color = '#10b981';
-            refreshBtn.disabled = false;
 
             hideStatusTimer = setTimeout(() => {
-                if (dataStatus === 'ready') {
-                    loadingMsg.style.display = 'none';
-                }
+                if (dataStatus === 'ready') loadingMsg.style.display = 'none';
             }, 4000);
 
         } catch (error) {
-            console.error('CSV loading error:', error);
-
-            /*
-               لو كان عندنا بيانات قديمة ناجحة، لا نمسحها عند فشل التحديث.
-            */
+            console.error(error);
             if (patientsList.length > 0 && dataLoadedOnce) {
                 dataStatus = 'ready';
-                loadingMsg.innerText =
-                    `⚠️ التحديث فشل — ما زالت آخر بيانات محملة متاحة (${patientsList.length} مريض)`;
+                loadingMsg.innerText = `⚠️ التحديث فشل — ما زالت آخر بيانات متاحة (${patientsList.length} مريض)`;
             } else {
                 dataStatus = 'error';
-                loadingMsg.innerText =
-                    '⚠️ فشل تحميل بيانات المرضى من الشيت. اضغط تحديث للمحاولة مرة أخرى.';
+                loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
             }
-
             loadingMsg.style.color = '#dc2626';
+        } finally {
             refreshBtn.disabled = false;
         }
     }
 
-    let currentMatches = [];
-    let activeIndex = -1;
-    let selectedPatient = null;
-
     function renderActiveHighlight() {
         const items = suggestionsBox.querySelectorAll('.suggestion-item[data-idx]');
         items.forEach(el => el.classList.remove('active'));
-
         if (activeIndex >= 0 && items[activeIndex]) {
             items[activeIndex].classList.add('active');
             items[activeIndex].scrollIntoView({ block: 'nearest' });
@@ -747,23 +599,19 @@
                 div.className = 'suggestion-item';
                 div.dataset.idx = idx;
                 div.innerText = patient.name;
-
                 div.onmousedown = (ev) => {
                     ev.preventDefault();
                     activeIndex = idx;
                     fillSticker(patient);
                 };
-
                 suggestionsBox.appendChild(div);
             });
         }
-
         suggestionsBox.classList.add('open');
     });
 
     searchInput.addEventListener('keydown', (e) => {
         if (!suggestionsBox.classList.contains('open') || currentMatches.length === 0) return;
-
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             activeIndex = (activeIndex + 1) % currentMatches.length;
@@ -823,15 +671,36 @@
         ctx.restore();
     }
 
-    async function createThermalSticker(targetCanvas = null) {
+    /* 
+       دالة الرسم:
+       - isPrint = false (للمعاينة): ترسم بالعرض 400x240
+       - isPrint = true (للطباعة): ترسم بالطول 240x400 وتلف الرسمة 90 درجة
+    */
+    async function createThermalSticker(targetCanvas = null, isPrint = false) {
         const canvas = targetCanvas || document.createElement('canvas');
-        canvas.width = PRINT_WIDTH;
-        canvas.height = PRINT_HEIGHT;
+        
+        if (isPrint) {
+            canvas.width = PRINT_CANVAS_WIDTH;   // 240
+            canvas.height = PRINT_CANVAS_HEIGHT; // 400
+        } else {
+            canvas.width = LOGICAL_WIDTH;        // 400
+            canvas.height = LOGICAL_HEIGHT;      // 240
+        }
 
         const ctx = canvas.getContext('2d', { alpha: false });
 
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+
+        if (isPrint) {
+            // لف الـ Canvas 90 درجة في اتجاه عقارب الساعة لتناسب الورقة الـ Portrait
+            ctx.translate(PRINT_CANVAS_WIDTH, 0);
+            ctx.rotate(90 * Math.PI / 180);
+        }
+
+        // --- جميع الإحداثيات هنا تعتمد على العرض 400 والطول 240 ---
 
         const name = stName.value.trim() || '---';
         const unified = stUnifiedId.value.trim() || '---';
@@ -850,7 +719,7 @@
             const logoHeight = logo.naturalHeight * ratio;
 
             const logoX = 20; 
-            const logoY = PRINT_HEIGHT - logoHeight - 15; 
+            const logoY = LOGICAL_HEIGHT - logoHeight - 15; 
 
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
@@ -868,7 +737,7 @@
         drawTextRTL(
             ctx,
             nameText,
-            PRINT_WIDTH / 2,
+            LOGICAL_WIDTH / 2,
             58, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
@@ -879,30 +748,25 @@
         drawTextRTL(
             ctx,
             unifiedText,
-            PRINT_WIDTH / 2,
+            LOGICAL_WIDTH / 2,
             125, 
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
 
+        ctx.restore();
+
         return canvas.toDataURL('image/png');
     }
 
-
-    /* =========================================================
-       تحديث المعاينة بنفس دالة الرسم المستخدمة للطباعة
-       لذلك ما يظهر هنا هو نفسه تقريباً ما سيصل للطابعة.
-    ========================================================= */
     let previewUpdateTimer = null;
     let previewRenderNumber = 0;
 
     async function updatePreview() {
         const renderNumber = ++previewRenderNumber;
-
         try {
-            await createThermalSticker(previewCanvas);
-
-            // تجاهل أي رسم قديم لو حصل تحديث أسرع بعده
+            // المعاينة ترسم بالشكل العرضي (isPrint = false)
+            await createThermalSticker(previewCanvas, false);
             if (renderNumber !== previewRenderNumber) return;
         } catch (error) {
             console.error('Preview render error:', error);
@@ -922,7 +786,6 @@
     stUnifiedId.addEventListener('input', () => {
         schedulePreviewUpdate();
     });
-
 
     async function printStickers() {
         const printContainer = document.getElementById('print-container');
@@ -948,14 +811,16 @@
 
         try {
             printContainer.innerHTML = '';
-            const imageData = await createThermalSticker();
+            // إنشاء صورة الطباعة بالطول وملفوفة 90 درجة (isPrint = true)
+            const imageData = await createThermalSticker(null, true);
 
             for (let i = 0; i < copies; i++) {
                 const img = document.createElement('img');
                 img.className = 'thermal-print-image';
                 img.src = imageData;
-                img.width = PRINT_WIDTH;
-                img.height = PRINT_HEIGHT;
+                // مقاسات الصورة المطابقة لورقة الطابعة
+                img.width = PRINT_CANVAS_WIDTH;
+                img.height = PRINT_CANVAS_HEIGHT;
                 printContainer.appendChild(img);
             }
 
