@@ -341,8 +341,8 @@
 
         .thermal-print-image {
             display: block;
-            width: 50mm !important;
-            height: 30mm !important;
+            width: 30mm !important;
+            height: 50mm !important;
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;
@@ -359,7 +359,11 @@
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 50mm !important;
+                width: 30mm !important;
+                height: 50mm !important;
+                min-width: 30mm !important;
+                min-height: 50mm !important;
+                overflow: hidden !important;
                 background: #ffffff !important;
                 color: #000000 !important;
             }
@@ -369,20 +373,22 @@
 
             #print-container {
                 display: block !important;
-                width: 50mm !important;
+                width: 30mm !important;
+                height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
 
             @page {
-                size: 50mm 30mm;
+                /* Portrait للطابعة: عرض 30mm × طول 50mm */
+                size: 30mm 50mm;
                 margin: 0;
             }
 
             .thermal-print-image {
                 display: block !important;
-                width: 50mm !important;
-                height: 30mm !important;
+                width: 30mm !important;
+                height: 50mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: always;
@@ -455,14 +461,49 @@
         </div>
 
         <button class="btn-print" onclick="printStickers()">🖨️ طباعة الاستيكرات</button>
+
+        <div style="
+            margin-top:10px;
+            font-size:12px;
+            font-weight:700;
+            color:#475569;
+            text-align:center;
+            line-height:1.7;
+        ">
+            إعداد الطباعة: <strong>30×50 mm — Portrait</strong><br>
+            التصميم سيخرج بنفس شكل الاستيكر العرضي 50×30.
+        </div>
     </div>
 
     <div id="print-container"></div>
 
 <script>
     const PRINT_DPI = 203;
-    const PRINT_WIDTH = 400;
-    const PRINT_HEIGHT = 240;
+
+    /*
+       مهم جداً:
+       لا تغيّر المنطق التالي لو هدفك هو:
+       - اختيار Portrait في Driver الطابعة
+       - مع بقاء شكل الاستيكر نفسه Landscape
+
+       التصميم يُرسم أولاً 400×240 (50×30 Landscape)
+       ثم يُدوّر كبكسلات داخل صفحة 240×400 (30×50 Portrait).
+       لا يوجد CSS rotate وقت الطباعة، وبالتالي الـDriver يستقبل Portrait حقيقي.
+    */
+
+    /*
+       شكل الاستيكر النهائي عند قراءته:
+       50×30 mm Landscape
+    */
+    const DESIGN_WIDTH = 400;
+    const DESIGN_HEIGHT = 240;
+
+    /*
+       الصفحة التي نرسلها للطابعة:
+       30×50 mm Portrait
+    */
+    const PRINT_WIDTH = 240;
+    const PRINT_HEIGHT = 400;
 
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
@@ -517,7 +558,29 @@
     let dataLoadedOnce = false;
     let hideStatusTimer = null;
 
+    // حماية من الضغط المتكرر على زر التحديث
+    let isLoadingPatients = false;
+    let lastRefreshStartedAt = 0;
+
     async function loadData() {
+
+        // لو فيه تحميل شغال بالفعل، تجاهل أي ضغطات إضافية
+        if (isLoadingPatients) {
+            loadingMsg.style.display = 'block';
+            loadingMsg.innerText = '⏳ جاري التحديث بالفعل...';
+            loadingMsg.style.color = '#2563eb';
+            return;
+        }
+
+        // منع الضغطات السريعة جداً حتى بعد انتهاء الطلب مباشرة
+        const nowMs = Date.now();
+        if (nowMs - lastRefreshStartedAt < 1000) {
+            return;
+        }
+
+        lastRefreshStartedAt = nowMs;
+        isLoadingPatients = true;
+
         if (hideStatusTimer) {
             clearTimeout(hideStatusTimer);
             hideStatusTimer = null;
@@ -544,16 +607,28 @@
 
             let response;
 
+            // مهلة قصوى للطلب حتى لا يظل الموقع معلقاً لو الشبكة علقت
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
             try {
                 response = await fetch(freshUrl, {
-                    cache: 'no-store'
+                    cache: 'no-store',
+                    signal: controller.signal
                 });
             } catch (firstError) {
+                if (firstError && firstError.name === 'AbortError') {
+                    throw new Error('انتهت مهلة الاتصال بالشيت');
+                }
+
                 console.warn('Fresh CSV request failed, retrying original URL:', firstError);
 
                 response = await fetch(CSV_URL, {
-                    cache: 'no-store'
+                    cache: 'no-store',
+                    signal: controller.signal
                 });
+            } finally {
+                clearTimeout(timeoutId);
             }
 
             if (!response.ok) {
@@ -705,6 +780,10 @@
             }
 
             loadingMsg.style.color = '#dc2626';
+
+        } finally {
+            // مهم جداً: فك القفل في كل الحالات، سواء نجح أو فشل الطلب
+            isLoadingPatients = false;
             refreshBtn.disabled = false;
         }
     }
@@ -811,6 +890,7 @@
 
     function drawTextRTL(ctx, text, x, y, font, maxWidth) {
         ctx.save();
+        ctx.canvas.dir = 'rtl';
         ctx.direction = 'rtl';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -823,21 +903,32 @@
         ctx.restore();
     }
 
-    async function createThermalSticker(targetCanvas = null) {
+    /* =========================================================
+       رسم شكل الاستيكر نفسه Landscape 50×30
+       المعاينة تستخدم هذه الدالة مباشرة.
+    ========================================================= */
+    async function renderLandscapeDesign(targetCanvas = null) {
         const canvas = targetCanvas || document.createElement('canvas');
-        canvas.width = PRINT_WIDTH;
-        canvas.height = PRINT_HEIGHT;
+
+        canvas.width = DESIGN_WIDTH;
+        canvas.height = DESIGN_HEIGHT;
+        canvas.dir = 'rtl';
 
         const ctx = canvas.getContext('2d', { alpha: false });
 
+        // نعيد ضبط الـ transform عند إعادة رسم Canvas المعاينة
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
+
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
+        ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
 
         const name = stName.value.trim() || '---';
         const unified = stUnifiedId.value.trim() || '---';
 
         try {
             const logo = await loadLogoImage();
+
             const maxLogoWidth = 90;
             const maxLogoHeight = 32;
 
@@ -849,16 +940,23 @@
             const logoWidth = logo.naturalWidth * ratio;
             const logoHeight = logo.naturalHeight * ratio;
 
-            const logoX = 20; 
-            const logoY = PRINT_HEIGHT - logoHeight - 15; 
+            const logoX = 20;
+            const logoY = DESIGN_HEIGHT - logoHeight - 15;
 
             ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+            ctx.drawImage(
+                logo,
+                logoX,
+                logoY,
+                logoWidth,
+                logoHeight
+            );
         } catch (error) {
             console.warn('Logo could not be loaded', error);
         }
 
-        let nameText = name;
+        /* اسم المريض: سطر واحد */
+        const nameText = name;
         let nameFontSize = 45;
 
         if (nameText.length > 18) nameFontSize = 38;
@@ -868,24 +966,65 @@
         drawTextRTL(
             ctx,
             nameText,
-            PRINT_WIDTH / 2,
-            58, 
+            DESIGN_WIDTH / 2,
+            58,
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
 
+        /* الرقم الموحد */
         const unifiedText = `رقم موحد: ${unified}`;
 
         drawTextRTL(
             ctx,
             unifiedText,
-            PRINT_WIDTH / 2,
-            125, 
+            DESIGN_WIDTH / 2,
+            125,
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
 
-        return canvas.toDataURL('image/png');
+        return canvas;
+    }
+
+
+    /* =========================================================
+       تجهيز ملف الطباعة:
+       الصفحة Portrait 30×50
+       لكن التصميم داخلها يدور 90° ويظل Landscape عند القراءة.
+    ========================================================= */
+    async function createThermalSticker() {
+        const designCanvas = await renderLandscapeDesign();
+
+        const printCanvas = document.createElement('canvas');
+        printCanvas.width = PRINT_WIDTH;
+        printCanvas.height = PRINT_HEIGHT;
+
+        const ctx = printCanvas.getContext('2d', { alpha: false });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
+
+        /*
+           تدوير 90° مع عقارب الساعة:
+           (400×240) -> (240×400)
+        */
+        ctx.save();
+        ctx.translate(PRINT_WIDTH, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.imageSmoothingEnabled = false;
+
+        ctx.drawImage(
+            designCanvas,
+            0,
+            0,
+            DESIGN_WIDTH,
+            DESIGN_HEIGHT
+        );
+
+        ctx.restore();
+
+        return printCanvas.toDataURL('image/png');
     }
 
 
@@ -900,10 +1039,14 @@
         const renderNumber = ++previewRenderNumber;
 
         try {
-            await createThermalSticker(previewCanvas);
+            /*
+               المعاينة تظل Landscape 50×30
+               وهي نفس الرسمة التي ستدور 90° وقت الطباعة.
+            */
+            await renderLandscapeDesign(previewCanvas);
 
-            // تجاهل أي رسم قديم لو حصل تحديث أسرع بعده
             if (renderNumber !== previewRenderNumber) return;
+
         } catch (error) {
             console.error('Preview render error:', error);
         }
@@ -950,13 +1093,27 @@
             printContainer.innerHTML = '';
             const imageData = await createThermalSticker();
 
+            const imagePromises = [];
+
             for (let i = 0; i < copies; i++) {
                 const img = document.createElement('img');
+
                 img.className = 'thermal-print-image';
                 img.src = imageData;
                 img.width = PRINT_WIDTH;
                 img.height = PRINT_HEIGHT;
+
                 printContainer.appendChild(img);
+
+                if (typeof img.decode === 'function') {
+                    imagePromises.push(
+                        img.decode().catch(() => {})
+                    );
+                }
+            }
+
+            if (imagePromises.length) {
+                await Promise.all(imagePromises);
             }
 
             await new Promise(resolve =>
