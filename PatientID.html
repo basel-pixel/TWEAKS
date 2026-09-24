@@ -1,1696 +1,2303 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-    <title>طباعة استيكر المريض</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            /* XP-233B
-               203 DPI
-               50mm × 30mm
-               ≈ 400 × 240 dots
-            */
-            --label-width: 50mm;
-            --label-height: 30mm;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f1f5f9;
-            margin: 0;
-            padding: 20px;
-            color: #0f172a;
-
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* =========================================================
-           واجهة البرنامج
-        ========================================================= */
-
-        .app-container {
-            width: 100%;
-            max-width: 500px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .hospital-logo {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .hospital-logo img {
-            max-width: 120px;
-            height: auto;
-        }
-
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #1e293b;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-            width: 100%;
-        }
+    <title>طباعة استيكر المريض</title>
 
-        .search-input {
-            width: 100%;
-            padding: 12px 15px;
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
+    <style>
+        :root {
+            /* =====================================================
+               XP-233B
+               203 DPI
+               50mm × 30mm
+            ===================================================== */
 
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
+            --label-width: 50mm;
+            --label-height: 30mm;
+        }
 
-            box-sizing: border-box;
-            outline: none;
+        * {
+            box-sizing: border-box;
+        }
 
-            transition: border-color 0.2s;
-        }
+        body {
+            font-family: 'Cairo', sans-serif;
 
-        .search-input:focus {
-            border-color: #3b82f6;
-        }
+            background-color: #f1f5f9;
 
-        .suggestions-box {
-            display: none;
+            margin: 0;
+            padding: 20px;
 
-            position: absolute;
-            top: 100%;
-            right: 0;
-            left: 0;
+            color: #0f172a;
 
-            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        /* =========================================================
+           واجهة البرنامج
+        ========================================================= */
 
-            max-height: 200px;
-            overflow-y: auto;
+        .app-container {
+            width: 100%;
+            max-width: 500px;
 
-            margin-top: 5px;
-        }
+            background: #fff;
 
-        .suggestions-box.open {
-            display: block;
-        }
+            padding: 20px;
 
-        .suggestion-item {
-            padding: 10px 12px;
+            border-radius: 12px;
 
-            font-size: 14px;
-            font-weight: 600;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.05);
 
-            cursor: pointer;
+            margin-bottom: 20px;
 
-            border-bottom: 1px solid #f1f5f9;
-        }
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        .suggestion-item:hover {
-            background-color: #eff6ff;
-        }
 
-        .suggestion-item.active {
-            background-color: #dbeafe;
-        }
+        .hospital-logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
 
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
 
-        .status-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .hospital-logo img {
+            max-width: 120px;
+            height: auto;
+        }
 
-            gap: 8px;
-            width: 100%;
 
-            margin-bottom: 15px;
-        }
+        h2 {
+            text-align: center;
 
-        #loading-msg {
-            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
 
-            font-size: 13px;
-            font-weight: bold;
+            color: #1e293b;
+        }
 
-            color: #2563eb;
 
-            min-height: 20px;
-            flex: 1;
-        }
+        /* =========================================================
+           البحث
+        ========================================================= */
 
-        .btn-refresh {
-            flex-shrink: 0;
+        .search-box {
+            position: relative;
 
-            background: #eff6ff;
-            color: #2563eb;
+            margin-bottom: 20px;
 
-            border: 1px solid #bfdbfe;
-            border-radius: 6px;
+            width: 100%;
+        }
 
-            padding: 6px 10px;
 
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 700;
+        .search-input {
+            width: 100%;
 
-            cursor: pointer;
-        }
+            padding: 12px 15px;
 
-        .btn-refresh:hover {
-            background: #dbeafe;
-        }
+            border: 2px solid #cbd5e1;
 
-        .btn-refresh:disabled {
-            opacity: 0.6;
-            cursor: default;
-        }
+            border-radius: 8px;
 
-        .copies-box {
-            width: 100%;
+            font-family: inherit;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 15px;
 
-            gap: 10px;
+            font-weight: 600;
 
-            margin-bottom: 20px;
+            box-sizing: border-box;
 
-            background: #f8fafc;
-            padding: 10px;
+            outline: none;
 
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
+            transition:
+                border-color 0.2s;
+        }
 
-        .copies-box label {
-            font-weight: bold;
-            color: #0f172a;
-            font-size: 15px;
-        }
 
-        .copies-box input {
-            width: 70px;
+        .search-input:focus {
+            border-color: #3b82f6;
+        }
 
-            padding: 8px;
 
-            text-align: center;
+        .suggestions-box {
+            display: none;
 
-            font-size: 16px;
-            font-weight: bold;
-            font-family: inherit;
+            position: absolute;
 
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
+            top: 100%;
 
-            outline: none;
-        }
+            right: 0;
+            left: 0;
 
-        .copies-box input:focus {
-            border-color: #10b981;
-        }
+            z-index: 1000;
 
-        .preview-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: #ffffff;
 
-            margin-bottom: 20px;
-        }
+            border: 1px solid #cbd5e1;
 
-        .preview-title {
-            font-size: 13px;
-            color: #64748b;
+            border-radius: 8px;
 
-            margin-bottom: 10px;
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.15);
 
-            font-weight: bold;
-            text-align: center;
-        }
+            max-height: 200px;
 
-        .btn-print {
-            background: #10b981;
-            color: #fff;
+            overflow-y: auto;
 
-            border: none;
+            margin-top: 5px;
+        }
 
-            width: 100%;
 
-            padding: 15px;
+        .suggestions-box.open {
+            display: block;
+        }
 
-            font-family: inherit;
-            font-size: 18px;
-            font-weight: bold;
 
-            border-radius: 8px;
+        .suggestion-item {
+            padding: 10px 12px;
 
-            cursor: pointer;
+            font-size: 14px;
 
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-        }
+            font-weight: 600;
 
-        .btn-print:active {
-            transform: scale(0.97);
-        }
+            cursor: pointer;
 
-        /* =========================================================
-           الاستيكر الخاص بالمعاينة
-        ========================================================= */
+            border-bottom:
+                1px solid #f1f5f9;
+        }
 
-        .sticker {
-            width: var(--label-width);
-            height: var(--label-height);
 
-            background: #ffffff;
+        .suggestion-item:hover {
+            background-color: #eff6ff;
+        }
 
-            border: 1px dashed #000000;
 
-            box-sizing: border-box;
+        .suggestion-item.active {
+            background-color: #dbeafe;
+        }
 
-            padding: 2mm;
 
-            display: flex;
-            flex-direction: column;
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
 
-            justify-content: space-between;
-            align-items: center;
 
-            overflow: hidden;
+        /* =========================================================
+           حالة التحميل
+        ========================================================= */
 
-            color: #000000 !important;
+        .status-row {
+            display: flex;
 
-            font-family: Tahoma, Arial, sans-serif;
+            align-items: center;
 
-            -webkit-font-smoothing: none;
-            -moz-osx-font-smoothing: grayscale;
+            justify-content: center;
 
-            text-rendering: geometricPrecision;
+            gap: 8px;
 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
+            width: 100%;
 
-        .st-logo {
-            height: 9mm;
+            margin-bottom: 15px;
+        }
 
-            width: 100%;
 
-            display: flex;
+        #loading-msg {
+            text-align: center;
 
-            justify-content: center;
-            align-items: center;
+            font-size: 13px;
 
-            margin-bottom: 2px;
-        }
+            font-weight: bold;
 
-        .st-logo img {
-            max-height: 100%;
-            max-width: 40mm;
+            color: #2563eb;
 
-            object-fit: contain;
-        }
+            min-height: 20px;
 
-        .st-name {
-            font-family: Tahoma, Arial, sans-serif;
+            flex: 1;
+        }
 
-            font-size: 15px;
 
-            font-weight: 900;
+        .btn-refresh {
+            flex-shrink: 0;
 
-            color: #000000 !important;
+            background: #eff6ff;
 
-            text-align: center;
+            color: #2563eb;
 
-            width: 100%;
+            border: 1px solid #bfdbfe;
 
-            white-space: normal;
+            border-radius: 6px;
 
-            line-height: 1.2;
+            padding: 6px 10px;
 
-            max-height: 35px;
+            font-family: inherit;
 
-            overflow: hidden;
+            font-size: 12px;
 
-            padding-bottom: 2px;
-            margin-bottom: 2px;
+            font-weight: 700;
 
-            -webkit-text-stroke: 0.15px #000000;
-        }
+            cursor: pointer;
+        }
 
-        .st-unified {
-            font-family: Tahoma, Arial, sans-serif;
 
-            font-size: 14px;
+        .btn-refresh:hover {
+            background: #dbeafe;
+        }
 
-            font-weight: 900;
 
-            color: #000000 !important;
+        .btn-refresh:disabled {
+            opacity: 0.6;
 
-            text-align: center;
+            cursor: default;
+        }
 
-            width: 100%;
 
-            white-space: nowrap;
+        /* =========================================================
+           عدد النسخ
+        ========================================================= */
 
-            -webkit-text-stroke: 0.1px #000000;
-        }
+        .copies-box {
+            width: 100%;
 
-        .st-label {
-            font-family: Tahoma, Arial, sans-serif;
+            display: flex;
 
-            font-weight: 700;
+            align-items: center;
 
-            font-size: 12px;
+            justify-content: center;
 
-            color: #000000 !important;
-        }
+            gap: 10px;
 
-        /* =========================================================
-           منطقة الطباعة
-        ========================================================= */
+            margin-bottom: 20px;
 
-        #print-container {
-            display: none;
-        }
+            background: #f8fafc;
 
-        /*
-            صورة الـ Bitmap الخاصة بالطباعة
+            padding: 10px;
 
-            400 × 240 pixels
-            = 50 × 30 mm
-            على 203 DPI تقريباً
-        */
+            border-radius: 8px;
 
-        .thermal-print-image {
-            display: block;
+            border: 1px solid #e2e8f0;
+        }
 
-            width: 50mm !important;
-            height: 30mm !important;
 
-            margin: 0 !important;
-            padding: 0 !important;
+        .copies-box label {
+            font-weight: bold;
 
-            border: none !important;
+            color: #0f172a;
 
-            background: #ffffff;
+            font-size: 15px;
+        }
 
-            /*
-               لا نستخدم pixelated هنا
-               حتى لا تظهر الحواف بشكل مبالغ فيه
-            */
-            image-rendering: auto;
-        }
 
-        /* =========================================================
-           PRINT
-        ========================================================= */
+        .copies-box input {
+            width: 70px;
 
-        @media print {
+            padding: 8px;
 
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
+            text-align: center;
 
-            html,
-            body {
-                margin: 0 !important;
-                padding: 0 !important;
+            font-size: 16px;
 
-                width: 50mm !important;
+            font-weight: bold;
 
-                background: #ffffff !important;
+            font-family: inherit;
 
-                color: #000000 !important;
-            }
+            border: 2px solid #cbd5e1;
 
-            body {
-                display: block !important;
-            }
+            border-radius: 6px;
 
-            .no-print,
-            .app-container {
-                display: none !important;
-            }
+            outline: none;
+        }
 
-            #print-container {
-                display: block !important;
 
-                width: 50mm !important;
+        .copies-box input:focus {
+            border-color: #10b981;
+        }
 
-                margin: 0 !important;
-                padding: 0 !important;
-            }
 
-            @page {
-                size: 50mm 30mm;
-                margin: 0;
-            }
+        /* =========================================================
+           المعاينة
+        ========================================================= */
 
-            .thermal-print-image {
-                display: block !important;
+        .preview-section {
+            display: flex;
 
-                width: 50mm !important;
-                height: 30mm !important;
+            flex-direction: column;
 
-                margin: 0 !important;
-                padding: 0 !important;
+            align-items: center;
 
-                page-break-after: always;
-                break-after: page;
+            margin-bottom: 20px;
+        }
 
-                background: #ffffff !important;
 
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
+        .preview-title {
+            font-size: 13px;
 
-            .thermal-print-image:last-child {
-                page-break-after: auto;
-                break-after: auto;
-            }
-        }
-    </style>
+            color: #64748b;
+
+            margin-bottom: 10px;
+
+            font-weight: bold;
+
+            text-align: center;
+        }
+
+
+        /* =========================================================
+           زر الطباعة
+        ========================================================= */
+
+        .btn-print {
+            background: #10b981;
+
+            color: #fff;
+
+            border: none;
+
+            width: 100%;
+
+            padding: 15px;
+
+            font-family: inherit;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 4px 10px rgba(16,185,129,0.3);
+
+            transition:
+                transform 0.1s;
+        }
+
+
+        .btn-print:active {
+            transform: scale(0.97);
+        }
+
+
+        .btn-print:disabled {
+            opacity: 0.7;
+
+            cursor: wait;
+        }
+
+
+        /* =========================================================
+           الاستيكر الخاص بالمعاينة
+        ========================================================= */
+
+        .sticker {
+            width: var(--label-width);
+
+            height: var(--label-height);
+
+            background: #ffffff;
+
+            border: 1px dashed #000000;
+
+            box-sizing: border-box;
+
+            padding: 2mm;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            overflow: hidden;
+
+            color: #000000 !important;
+
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            -webkit-font-smoothing: none;
+
+            -moz-osx-font-smoothing: grayscale;
+
+            text-rendering: geometricPrecision;
+
+            -webkit-print-color-adjust:
+                exact !important;
+
+            print-color-adjust:
+                exact !important;
+        }
+
+
+        /* =========================================================
+           اللوجو في المعاينة
+           يستخدم اللوجو الأصلي
+        ========================================================= */
+
+        .st-logo {
+            height: 9mm;
+
+            width: 100%;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            margin-bottom: 2px;
+        }
+
+
+        .st-logo img {
+            max-height: 100%;
+
+            max-width: 40mm;
+
+            object-fit: contain;
+        }
+
+
+        /* =========================================================
+           اسم المريض في المعاينة
+        ========================================================= */
+
+        .st-name {
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            font-size: 15px;
+
+            font-weight: 900;
+
+            color: #000000 !important;
+
+            text-align: center;
+
+            width: 100%;
+
+            white-space: normal;
+
+            line-height: 1.2;
+
+            max-height: 35px;
+
+            overflow: hidden;
+
+            padding-bottom: 2px;
+
+            margin-bottom: 2px;
+
+            -webkit-text-stroke:
+                0.15px #000000;
+        }
+
+
+        /* =========================================================
+           الرقم الموحد
+        ========================================================= */
+
+        .st-unified {
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            font-size: 14px;
+
+            font-weight: 900;
+
+            color: #000000 !important;
+
+            text-align: center;
+
+            width: 100%;
+
+            white-space: nowrap;
+
+            -webkit-text-stroke:
+                0.1px #000000;
+        }
+
+
+        .st-label {
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            font-weight: 700;
+
+            font-size: 12px;
+
+            color: #000000 !important;
+        }
+
+
+        /* =========================================================
+           منطقة الطباعة
+        ========================================================= */
+
+        #print-container {
+            display: none;
+        }
+
+
+        /*
+            Bitmap الخاص بالطباعة
+
+            400 × 240 pixels
+
+            50 × 30 mm
+
+            203 DPI تقريباً
+        */
+
+        .thermal-print-image {
+            display: block;
+
+            width: 50mm !important;
+
+            height: 30mm !important;
+
+            margin: 0 !important;
+
+            padding: 0 !important;
+
+            border: none !important;
+
+            background: #ffffff;
+
+            image-rendering: auto;
+        }
+
+
+        /* =========================================================
+           إعدادات الطباعة
+        ========================================================= */
+
+        @media print {
+
+            * {
+                -webkit-print-color-adjust:
+                    exact !important;
+
+                print-color-adjust:
+                    exact !important;
+            }
+
+
+            html,
+            body {
+                margin: 0 !important;
+
+                padding: 0 !important;
+
+                width: 50mm !important;
+
+                background: #ffffff !important;
+
+                color: #000000 !important;
+            }
+
+
+            body {
+                display: block !important;
+            }
+
+
+            .no-print,
+            .app-container {
+                display: none !important;
+            }
+
+
+            #print-container {
+                display: block !important;
+
+                width: 50mm !important;
+
+                margin: 0 !important;
+
+                padding: 0 !important;
+            }
+
+
+            @page {
+                size: 50mm 30mm;
+
+                margin: 0;
+            }
+
+
+            .thermal-print-image {
+                display: block !important;
+
+                width: 50mm !important;
+
+                height: 30mm !important;
+
+                margin: 0 !important;
+
+                padding: 0 !important;
+
+                page-break-after: always;
+
+                break-after: page;
+
+                background: #ffffff !important;
+
+                -webkit-print-color-adjust:
+                    exact !important;
+
+                print-color-adjust:
+                    exact !important;
+            }
+
+
+            .thermal-print-image:last-child {
+                page-break-after: auto;
+
+                break-after: auto;
+            }
+        }
+    </style>
 </head>
+
 
 <body>
 
-    <!-- =========================================================
-         واجهة البرنامج
-    ========================================================= -->
 
-    <div class="app-container no-print">
+    <!-- =========================================================
+         واجهة البرنامج
+    ========================================================= -->
 
-        <div class="hospital-logo">
-            <img
-                src="MEpics/Picture1.png"
-                alt="مستشفى صيدناوي"
-                onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
-            >
-        </div>
-
-        <h2>طباعة استيكر المريض</h2>
-
-        <div class="status-row">
-
-            <div id="loading-msg">
-                جاري تحميل البيانات من الشيت... ⏳
-            </div>
-
-            <button
-                type="button"
-                id="refresh-btn"
-                class="btn-refresh"
-                onclick="loadData()"
-                title="تحديث البيانات من الشيت"
-            >
-                🔄 تحديث
-            </button>
-
-        </div>
-
-        <div class="search-box">
-
-            <input
-                type="text"
-                id="search-input"
-                class="search-input"
-                placeholder="اكتب اسم المريض للبحث..."
-                autocomplete="off"
-            >
-
-            <div
-                id="suggestions"
-                class="suggestions-box"
-            ></div>
-
-        </div>
-
-        <div class="copies-box">
-
-            <label for="copies-count">
-                عدد النسخ (الستيكرات):
-            </label>
-
-            <input
-                type="number"
-                id="copies-count"
-                min="1"
-                max="50"
-                value="1"
-            >
-
-        </div>
-
-        <div class="preview-section">
-
-            <div class="preview-title">
-                معاينة الاستيكر
-                (يمكن تعديل النص يدوياً قبل الطباعة)
-            </div>
-
-            <div
-                class="sticker"
-                id="preview-sticker"
-            >
-
-                <div class="st-logo">
-
-                    <img
-                        src="MEpics/Picture1.png"
-                        alt="Logo"
-                        onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
-                    >
-
-                </div>
-
-                <div
-                    class="st-name"
-                    id="st-name"
-                    contenteditable="true"
-                >
-                    اسم المريض
-                </div>
-
-                <div class="st-unified">
-
-                    <span class="st-label">
-                        رقم موحد:
-                    </span>
-
-                    <span
-                        id="st-unified-id"
-                        contenteditable="true"
-                    >
-                        ---
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <button
-            class="btn-print"
-            onclick="printStickers()"
-        >
-            🖨️ طباعة الاستيكرات
-        </button>
-
-    </div>
+    <div class="app-container no-print">
 
 
-    <!-- =========================================================
-         حاوية الطباعة
-    ========================================================= -->
+        <!-- اللوجو الأصلي للواجهة فقط -->
 
-    <div id="print-container"></div>
+        <div class="hospital-logo">
+
+            <img
+                src="MEpics/Picture1.png"
+                alt="مستشفى صيدناوي"
+                onerror="
+                    this.onerror=null;
+                    this.src='TWEAKS/MEpics/Picture1.png';
+                "
+            >
+
+        </div>
+
+
+        <h2>
+            طباعة استيكر المريض
+        </h2>
+
+
+        <!-- =====================================================
+             حالة البيانات
+        ===================================================== -->
+
+        <div class="status-row">
+
+            <div id="loading-msg">
+                جاري تحميل البيانات من الشيت... ⏳
+            </div>
+
+
+            <button
+                type="button"
+                id="refresh-btn"
+                class="btn-refresh"
+                onclick="loadData()"
+                title="تحديث البيانات من الشيت"
+            >
+                🔄 تحديث
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             البحث
+        ===================================================== -->
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                placeholder="اكتب اسم المريض للبحث..."
+                autocomplete="off"
+            >
+
+
+            <div
+                id="suggestions"
+                class="suggestions-box"
+            ></div>
+
+        </div>
+
+
+        <!-- =====================================================
+             عدد النسخ
+        ===================================================== -->
+
+        <div class="copies-box">
+
+            <label for="copies-count">
+                عدد النسخ (الستيكرات):
+            </label>
+
+
+            <input
+                type="number"
+                id="copies-count"
+                min="1"
+                max="50"
+                value="1"
+            >
+
+        </div>
+
+
+        <!-- =====================================================
+             المعاينة
+        ===================================================== -->
+
+        <div class="preview-section">
+
+            <div class="preview-title">
+
+                معاينة الاستيكر
+
+                <br>
+
+                يمكن تعديل النص يدوياً قبل الطباعة
+
+            </div>
+
+
+            <div
+                class="sticker"
+                id="preview-sticker"
+            >
+
+
+                <!-- اللوجو الأصلي للمعاينة -->
+
+                <div class="st-logo">
+
+                    <img
+                        src="MEpics/Picture1.png"
+                        alt="Logo"
+                        onerror="
+                            this.onerror=null;
+                            this.src='TWEAKS/MEpics/Picture1.png';
+                        "
+                    >
+
+                </div>
+
+
+                <!-- اسم المريض -->
+
+                <div
+                    class="st-name"
+                    id="st-name"
+                    contenteditable="true"
+                >
+                    اسم المريض
+                </div>
+
+
+                <!-- الرقم الموحد -->
+
+                <div class="st-unified">
+
+                    <span class="st-label">
+                        رقم موحد:
+                    </span>
+
+
+                    <span
+                        id="st-unified-id"
+                        contenteditable="true"
+                    >
+                        ---
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             زر الطباعة
+        ===================================================== -->
+
+        <button
+            class="btn-print"
+            onclick="printStickers()"
+        >
+            🖨️ طباعة الاستيكرات
+        </button>
+
+    </div>
+
+
+    <!-- =========================================================
+         حاوية الطباعة
+    ========================================================= -->
+
+    <div id="print-container"></div>
 
 
 <script>
 
-    /* =========================================================
-       إعدادات الطباعة الحرارية
-    ========================================================= */
 
-    const PRINT_DPI = 203;
+    /* =========================================================
+       إعدادات الطباعة الحرارية
+    ========================================================= */
 
-    /*
-       50mm على 203 DPI
-       = 399.6 ≈ 400 pixels
 
-       30mm على 203 DPI
-       = 239.8 ≈ 240 pixels
-    */
+    const PRINT_DPI = 203;
 
-    const PRINT_WIDTH = 400;
-    const PRINT_HEIGHT = 240;
 
+    /*
+        XP-233B
 
-    /* =========================================================
-       رابط الشيت
-    ========================================================= */
+        50mm × 203 DPI
+        ≈ 400 pixels
 
-    const CSV_URL =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
+        30mm × 203 DPI
+        ≈ 240 pixels
+    */
 
 
-    let patientsList = [];
+    const PRINT_WIDTH = 400;
 
-    const searchInput =
-        document.getElementById('search-input');
+    const PRINT_HEIGHT = 240;
 
-    const suggestionsBox =
-        document.getElementById('suggestions');
 
-    const loadingMsg =
-        document.getElementById('loading-msg');
 
-    const refreshBtn =
-        document.getElementById('refresh-btn');
+    /* =========================================================
+       رابط Google Sheets
+    ========================================================= */
 
-    const copiesCount =
-        document.getElementById('copies-count');
 
-    const stName =
-        document.getElementById('st-name');
+    const CSV_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
-    const stUnifiedId =
-        document.getElementById('st-unified-id');
 
 
-    /* =========================================================
-       توحيد البحث العربي
-    ========================================================= */
+    /* =========================================================
+       عناصر الصفحة
+    ========================================================= */
 
-    function normalizeArabic(text) {
 
-        return String(text || '')
-            .trim()
-            .toLowerCase()
+    let patientsList = [];
 
-            .replace(/[\u064B-\u065F\u0670]/g, '')
 
-            .replace(/[أإآٱ]/g, 'ا')
+    const searchInput =
+        document.getElementById(
+            'search-input'
+        );
 
-            .replace(/ى/g, 'ي')
 
-            .replace(/ة/g, 'ه')
+    const suggestionsBox =
+        document.getElementById(
+            'suggestions'
+        );
 
-            .replace(/[ؤئ]/g, 'ء')
 
-            .replace(/\s+/g, ' ');
-    }
+    const loadingMsg =
+        document.getElementById(
+            'loading-msg'
+        );
 
 
-    /* =========================================================
-       قراءة CSV
-    ========================================================= */
+    const refreshBtn =
+        document.getElementById(
+            'refresh-btn'
+        );
 
-    function parseCSVLine(text) {
 
-        let result = [];
+    const copiesCount =
+        document.getElementById(
+            'copies-count'
+        );
 
-        let current = '';
 
-        let inQuotes = false;
+    const stName =
+        document.getElementById(
+            'st-name'
+        );
 
-        for (let i = 0; i < text.length; i++) {
 
-            const char = text[i];
+    const stUnifiedId =
+        document.getElementById(
+            'st-unified-id'
+        );
 
-            if (char === '"') {
 
-                if (
-                    inQuotes &&
-                    text[i + 1] === '"'
-                ) {
 
-                    current += '"';
+    /* =========================================================
+       توحيد البحث العربي
+    ========================================================= */
 
-                    i++;
 
-                } else {
+    function normalizeArabic(text) {
 
-                    inQuotes = !inQuotes;
-                }
+        return String(text || '')
+            .trim()
+            .toLowerCase()
 
-            }
+            .replace(
+                /[\u064B-\u065F\u0670]/g,
+                ''
+            )
 
-            else if (
-                char === ',' &&
-                !inQuotes
-            ) {
+            .replace(
+                /[أإآٱ]/g,
+                'ا'
+            )
 
-                result.push(current.trim());
+            .replace(
+                /ى/g,
+                'ي'
+            )
 
-                current = '';
+            .replace(
+                /ة/g,
+                'ه'
+            )
 
-            }
+            .replace(
+                /[ؤئ]/g,
+                'ء'
+            )
 
-            else {
+            .replace(
+                /\s+/g,
+                ' '
+            );
+    }
 
-                current += char;
-            }
-        }
 
-        result.push(current.trim());
 
-        return result;
-    }
+    /* =========================================================
+       قراءة CSV
+    ========================================================= */
 
 
-    let dataStatus = 'loading';
+    function parseCSVLine(text) {
 
+        let result = [];
 
-    /* =========================================================
-       تحميل البيانات
-    ========================================================= */
+        let current = '';
 
-    async function loadData() {
+        let inQuotes = false;
 
-        dataStatus = 'loading';
 
-        refreshBtn.disabled = true;
+        for (
+            let i = 0;
+            i < text.length;
+            i++
+        ) {
 
-        loadingMsg.style.display = 'block';
+            const char = text[i];
 
-        loadingMsg.innerText =
-            'جاري تحميل البيانات من الشيت... ⏳';
 
-        loadingMsg.style.color = '#2563eb';
+            if (char === '"') {
 
-        try {
+                if (
+                    inQuotes &&
+                    text[i + 1] === '"'
+                ) {
 
-            const response = await fetch(
-                CSV_URL +
-                (CSV_URL.includes('?') ? '&' : '?') +
-                'cachebust=' +
-                Date.now()
-            );
+                    current += '"';
 
-            if (!response.ok) {
-                throw new Error("Error fetching CSV");
-            }
+                    i++;
 
-            const csvText =
-                await response.text();
+                }
 
-            const lines =
-                csvText
-                    .split(/\r\n|\n/)
-                    .filter(
-                        l => l.trim() !== ''
-                    );
+                else {
 
-            if (lines.length < 2) {
+                    inQuotes =
+                        !inQuotes;
+                }
+            }
 
-                loadingMsg.innerText =
-                    '⚠️ لا توجد بيانات في الشيت';
 
-                loadingMsg.style.color =
-                    '#dc2626';
+            else if (
+                char === ',' &&
+                !inQuotes
+            ) {
 
-                dataStatus = 'error';
+                result.push(
+                    current.trim()
+                );
 
-                refreshBtn.disabled = false;
+                current = '';
+            }
 
-                return;
-            }
 
+            else {
 
-            const headers =
-                parseCSVLine(lines[0])
-                    .map(
-                        h =>
-                            h
-                                .replace(/^"|"$/g, '')
-                                .trim()
-                    );
+                current += char;
+            }
+        }
 
 
-            const colName =
-                headers.findIndex(
-                    h =>
-                        h.includes('اسم') ||
-                        h.includes('المريض')
-                );
+        result.push(
+            current.trim()
+        );
 
 
-            const colUnified =
-                headers.findIndex(
-                    h =>
-                        h.includes('موحد') ||
-                        h.includes('طبي')
-                );
+        return result;
+    }
 
 
-            patientsList = [];
 
+    let dataStatus = 'loading';
 
-            for (
-                let i = 1;
-                i < lines.length;
-                i++
-            ) {
 
-                const cols =
-                    parseCSVLine(lines[i])
-                        .map(
-                            c =>
-                                c
-                                    .replace(/^"|"$/g, '')
-                                    .trim()
-                        );
 
+    /* =========================================================
+       تحميل البيانات من الشيت
+    ========================================================= */
 
-                if (
-                    colName !== -1 &&
-                    cols[colName]
-                ) {
 
-                    patientsList.push({
+    async function loadData() {
 
-                        name:
-                            cols[colName] || '',
+        dataStatus = 'loading';
 
-                        unifiedId:
-                            colUnified !== -1
-                                ? cols[colUnified]
-                                : ''
+        refreshBtn.disabled = true;
 
-                    });
-                }
-            }
 
+        loadingMsg.style.display =
+            'block';
 
-            loadingMsg.innerText =
-                `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
 
-            loadingMsg.style.color =
-                '#10b981';
+        loadingMsg.innerText =
+            'جاري تحميل البيانات من الشيت... ⏳';
 
-            dataStatus = 'ready';
 
-            refreshBtn.disabled = false;
+        loadingMsg.style.color =
+            '#2563eb';
 
 
-            setTimeout(() => {
+        try {
 
-                loadingMsg.style.display =
-                    'none';
+            const response =
+                await fetch(
+                    CSV_URL +
+                    (
+                        CSV_URL.includes('?')
+                            ? '&'
+                            : '?'
+                    ) +
+                    'cachebust=' +
+                    Date.now()
+                );
 
-            }, 3000);
 
-        }
+            if (!response.ok) {
 
-        catch (error) {
+                throw new Error(
+                    "Error fetching CSV"
+                );
+            }
 
-            console.error(error);
 
-            loadingMsg.innerText =
-                '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            const csvText =
+                await response.text();
 
-            loadingMsg.style.color =
-                '#dc2626';
 
-            dataStatus = 'error';
+            const lines =
+                csvText
+                    .split(/\r\n|\n/)
+                    .filter(
+                        l =>
+                            l.trim() !== ''
+                    );
 
-            refreshBtn.disabled = false;
-        }
-    }
 
+            if (lines.length < 2) {
 
-    /* =========================================================
-       البحث
-    ========================================================= */
+                loadingMsg.innerText =
+                    '⚠️ لا توجد بيانات في الشيت';
 
-    let currentMatches = [];
 
-    let activeIndex = -1;
+                loadingMsg.style.color =
+                    '#dc2626';
 
-    let selectedPatient = null;
 
+                dataStatus =
+                    'error';
 
-    function renderActiveHighlight() {
 
-        const items =
-            suggestionsBox.querySelectorAll(
-                '.suggestion-item[data-idx]'
-            );
+                refreshBtn.disabled =
+                    false;
 
-        items.forEach(
-            el =>
-                el.classList.remove('active')
-        );
 
+                return;
+            }
 
-        if (
-            activeIndex >= 0 &&
-            items[activeIndex]
-        ) {
 
-            items[activeIndex]
-                .classList.add('active');
 
+            /* =================================================
+               قراءة العناوين
+            ================================================= */
 
-            items[activeIndex]
-                .scrollIntoView({
-                    block: 'nearest'
-                });
-        }
-    }
 
+            const headers =
+                parseCSVLine(lines[0])
+                    .map(
+                        h =>
+                            h
+                                .replace(
+                                    /^"|"$/g,
+                                    ''
+                                )
+                                .trim()
+                    );
 
-    searchInput.addEventListener(
-        'input',
-        (e) => {
 
-            const query =
-                normalizeArabic(
-                    e.target.value
-                );
+            const colName =
+                headers.findIndex(
+                    h =>
+                        h.includes('اسم') ||
+                        h.includes('المريض')
+                );
 
 
-            suggestionsBox.innerHTML = '';
+            const colUnified =
+                headers.findIndex(
+                    h =>
+                        h.includes('موحد') ||
+                        h.includes('طبي')
+                );
 
-            activeIndex = -1;
 
-            selectedPatient = null;
+            patientsList = [];
 
 
-            if (!query) {
 
-                suggestionsBox
-                    .classList
-                    .remove('open');
+            /* =================================================
+               قراءة المرضى
+            ================================================= */
 
-                currentMatches = [];
 
-                return;
-            }
+            for (
+                let i = 1;
+                i < lines.length;
+                i++
+            ) {
 
+                const cols =
+                    parseCSVLine(lines[i])
+                        .map(
+                            c =>
+                                c
+                                    .replace(
+                                        /^"|"$/g,
+                                        ''
+                                    )
+                                    .trim()
+                        );
 
-            currentMatches =
-                patientsList
-                    .filter(
-                        p =>
-                            normalizeArabic(
-                                p.name
-                            ).includes(query)
-                    )
-                    .slice(0, 10);
 
+                if (
+                    colName !== -1 &&
+                    cols[colName]
+                ) {
 
-            if (
-                currentMatches.length === 0
-            ) {
+                    patientsList.push({
 
-                suggestionsBox.innerHTML =
-                    '<div class="suggestion-item" style="color:#94a3b8;">لا يوجد نتائج...</div>';
+                        name:
+                            cols[colName] || '',
 
-            }
+                        unifiedId:
+                            colUnified !== -1
+                                ? cols[colUnified]
+                                : ''
 
-            else {
+                    });
+                }
+            }
 
-                currentMatches.forEach(
-                    (patient, idx) => {
 
-                        const div =
-                            document.createElement(
-                                'div'
-                            );
 
-                        div.className =
-                            'suggestion-item';
+            /* =================================================
+               نجاح التحميل
+            ================================================= */
 
-                        div.dataset.idx =
-                            idx;
 
-                        div.innerText =
-                            patient.name;
+            loadingMsg.innerText =
+                `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
 
 
-                        div.onmousedown =
-                            (ev) => {
+            loadingMsg.style.color =
+                '#10b981';
 
-                                ev.preventDefault();
 
-                                activeIndex =
-                                    idx;
+            dataStatus =
+                'ready';
 
-                                fillSticker(
-                                    patient
-                                );
-                            };
 
+            refreshBtn.disabled =
+                false;
 
-                        suggestionsBox
-                            .appendChild(div);
-                    }
-                );
-            }
 
+            setTimeout(
+                () => {
 
-            suggestionsBox
-                .classList
-                .add('open');
-        }
-    );
+                    loadingMsg.style.display =
+                        'none';
 
+                },
+                3000
+            );
 
-    searchInput.addEventListener(
-        'keydown',
-        (e) => {
+        }
 
-            if (
-                !suggestionsBox
-                    .classList
-                    .contains('open') ||
-                currentMatches.length === 0
-            ) {
-                return;
-            }
 
+        catch (error) {
 
-            if (e.key === 'ArrowDown') {
+            console.error(error);
 
-                e.preventDefault();
 
-                activeIndex =
-                    (activeIndex + 1) %
-                    currentMatches.length;
+            loadingMsg.innerText =
+                '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
 
-                renderActiveHighlight();
-            }
 
+            loadingMsg.style.color =
+                '#dc2626';
 
-            else if (e.key === 'ArrowUp') {
 
-                e.preventDefault();
+            dataStatus =
+                'error';
 
-                activeIndex =
-                    (
-                        activeIndex -
-                        1 +
-                        currentMatches.length
-                    ) %
-                    currentMatches.length;
 
-                renderActiveHighlight();
-            }
+            refreshBtn.disabled =
+                false;
+        }
+    }
 
 
-            else if (e.key === 'Enter') {
 
-                e.preventDefault();
+    /* =========================================================
+       البحث والمقترحات
+    ========================================================= */
 
-                if (
-                    activeIndex >= 0 &&
-                    currentMatches[activeIndex]
-                ) {
 
-                    fillSticker(
-                        currentMatches[
-                            activeIndex
-                        ]
-                    );
-                }
-            }
+    let currentMatches = [];
 
+    let activeIndex = -1;
 
-            else if (e.key === 'Escape') {
+    let selectedPatient = null;
 
-                suggestionsBox
-                    .classList
-                    .remove('open');
-            }
-        }
-    );
 
 
-    searchInput.addEventListener(
-        'blur',
-        () =>
-            setTimeout(
-                () =>
-                    suggestionsBox
-                        .classList
-                        .remove('open'),
-                150
-            )
-    );
+    function renderActiveHighlight() {
 
+        const items =
+            suggestionsBox.querySelectorAll(
+                '.suggestion-item[data-idx]'
+            );
 
-    /* =========================================================
-       تعبئة الاستيكر
-    ========================================================= */
 
-    function fillSticker(patient) {
+        items.forEach(
+            el =>
+                el.classList.remove(
+                    'active'
+                )
+        );
 
-        selectedPatient = patient;
 
-        searchInput.value =
-            patient.name;
+        if (
+            activeIndex >= 0 &&
+            items[activeIndex]
+        ) {
 
-        suggestionsBox
-            .classList
-            .remove('open');
+            items[activeIndex]
+                .classList.add(
+                    'active'
+                );
 
 
-        stName.innerText =
-            patient.name || "---";
+            items[activeIndex]
+                .scrollIntoView({
+                    block: 'nearest'
+                });
+        }
+    }
 
 
-        stUnifiedId.innerText =
-            patient.unifiedId || "---";
-    }
 
+    searchInput.addEventListener(
+        'input',
+        (e) => {
 
-    /* =========================================================
-       تحميل صورة اللوجو
-    ========================================================= */
+            const query =
+                normalizeArabic(
+                    e.target.value
+                );
 
-    function loadLogoImage() {
 
-        return new Promise((resolve, reject) => {
+            suggestionsBox.innerHTML =
+                '';
 
-        const img = new Image();
 
-        img.onload = () => resolve(img);
+            activeIndex =
+                -1;
 
-        img.onerror = () => {
 
-            const fallback = new Image();
+            selectedPatient =
+                null;
 
-            fallback.onload = () => resolve(fallback);
 
-            fallback.onerror = reject;
+            if (!query) {
 
-            fallback.src =
-                'TWEAKS/MEpics/sidnawi_thermal_logo.png';
-        };
+                suggestionsBox
+                    .classList
+                    .remove('open');
 
-        /*
-         * هذا اللوجو يستخدم للطباعة فقط.
-         * اللوجو الأصلي في واجهة الموقع لن يتغير.
-         */
-        img.src =
-            'MEpics/sidnawi_thermal_logo.png';
-    });
-    }
 
+                currentMatches =
+                    [];
 
-    /* =========================================================
-       رسم النص العربي على Canvas
-       
-       هذه أهم خطوة في تحسين الطباعة.
-       
-       400 × 240 pixels
-       203 DPI
-       
-       أسود حقيقي 100%
-    ========================================================= */
 
-    function drawTextRTL(
-        ctx,
-        text,
-        x,
-        y,
-        font,
-        maxWidth
-    ) {
+                return;
+            }
 
-        ctx.save();
 
-        ctx.direction = 'rtl';
 
-        ctx.textAlign = 'center';
+            currentMatches =
+                patientsList
+                    .filter(
+                        p =>
+                            normalizeArabic(
+                                p.name
+                            ).includes(query)
+                    )
+                    .slice(
+                        0,
+                        10
+                    );
 
-        ctx.textBaseline = 'middle';
 
-        ctx.font = font;
 
-        ctx.fillStyle = '#000000';
+            if (
+                currentMatches.length === 0
+            ) {
 
-        ctx.strokeStyle = '#000000';
+                suggestionsBox.innerHTML =
+                    '<div class="suggestion-item" style="color:#94a3b8;">لا يوجد نتائج...</div>';
 
-        /*
-           Stroke بسيط جداً لزيادة امتلاء
-           الحروف بدون تخريب شكلها.
-        */
+            }
 
-        ctx.lineWidth = 0.35;
 
-        ctx.strokeText(
-            text,
-            x,
-            y,
-            maxWidth
-        );
+            else {
 
-        ctx.fillText(
-            text,
-            x,
-            y,
-            maxWidth
-        );
+                currentMatches.forEach(
+                    (
+                        patient,
+                        idx
+                    ) => {
 
-        ctx.restore();
-    }
+                        const div =
+                            document.createElement(
+                                'div'
+                            );
 
 
-    /* =========================================================
-       إنشاء Bitmap واحد للاستكر
-    ========================================================= */
+                        div.className =
+                            'suggestion-item';
 
-    async function createThermalSticker() {
 
-        const canvas =
-            document.createElement('canvas');
+                        div.dataset.idx =
+                            idx;
 
-        canvas.width =
-            PRINT_WIDTH;
 
-        canvas.height =
-            PRINT_HEIGHT;
+                        div.innerText =
+                            patient.name;
 
 
-        const ctx =
-            canvas.getContext('2d', {
-                alpha: false
-            });
+                        div.onmousedown =
+                            (ev) => {
 
+                                ev.preventDefault();
 
-        /*
-           خلفية بيضاء حقيقية
-        */
 
-        ctx.fillStyle =
-            '#ffffff';
+                                activeIndex =
+                                    idx;
 
-        ctx.fillRect(
-            0,
-            0,
-            PRINT_WIDTH,
-            PRINT_HEIGHT
-        );
 
+                                fillSticker(
+                                    patient
+                                );
+                            };
 
-        /*
-           مهم جداً:
-           نستخدم نص المعاينة الحالي،
-           وبالتالي لو المستخدم عدّل الاسم
-           يدوياً سيتم طباعة التعديل.
-        */
 
-        const name =
-            stName.innerText
-                .trim() || '---';
+                        suggestionsBox
+                            .appendChild(
+                                div
+                            );
+                    }
+                );
+            }
 
 
-        const unified =
-            stUnifiedId.innerText
-                .trim() || '---';
+            suggestionsBox
+                .classList
+                .add('open');
+        }
+    );
 
 
-        /* =====================================================
-           اللوجو
-        ===================================================== */
 
-        try {
+    /* =========================================================
+       لوحة المفاتيح
+    ========================================================= */
 
-            const logo =
-                await loadLogoImage();
 
+    searchInput.addEventListener(
+        'keydown',
+        (e) => {
 
-            /*
-               مساحة اللوجو تقريباً:
-               40mm × 9mm
-            */
+            if (
+                !suggestionsBox
+                    .classList
+                    .contains('open') ||
+                currentMatches.length === 0
+            ) {
 
-            const maxLogoWidth = 320;
+                return;
+            }
 
-            const maxLogoHeight = 72;
 
+            if (
+                e.key === 'ArrowDown'
+            ) {
 
-            const ratio =
-                Math.min(
-                    maxLogoWidth /
-                        logo.naturalWidth,
+                e.preventDefault();
 
-                    maxLogoHeight /
-                        logo.naturalHeight
-                );
 
+                activeIndex =
+                    (
+                        activeIndex +
+                        1
+                    ) %
+                    currentMatches.length;
 
-            const logoWidth =
-                logo.naturalWidth *
-                ratio;
 
+                renderActiveHighlight();
+            }
 
-            const logoHeight =
-                logo.naturalHeight *
-                ratio;
 
+            else if (
+                e.key === 'ArrowUp'
+            ) {
 
-            const logoX =
-                (
-                    PRINT_WIDTH -
-                    logoWidth
-                ) / 2;
+                e.preventDefault();
 
 
-            const logoY =
-                8;
+                activeIndex =
+                    (
+                        activeIndex -
+                        1 +
+                        currentMatches.length
+                    ) %
+                    currentMatches.length;
 
 
-            /*
-               لا نستخدم smoothing
-               قدر الإمكان أثناء تجهيز الصورة.
-            */
+                renderActiveHighlight();
+            }
 
-            ctx.imageSmoothingEnabled =
-                false;
 
+            else if (
+                e.key === 'Enter'
+            ) {
 
-            ctx.drawImage(
-                logo,
-                logoX,
-                logoY,
-                logoWidth,
-                logoHeight
-            );
+                e.preventDefault();
 
-        }
 
-        catch (error) {
+                if (
+                    activeIndex >= 0 &&
+                    currentMatches[
+                        activeIndex
+                    ]
+                ) {
 
-            console.warn(
-                'Logo could not be loaded',
-                error
-            );
-        }
+                    fillSticker(
+                        currentMatches[
+                            activeIndex
+                        ]
+                    );
+                }
+            }
 
 
-        /* =====================================================
-           اسم المريض
-        ===================================================== */
+            else if (
+                e.key === 'Escape'
+            ) {
 
-        /*
-           منطقة الاسم:
+                suggestionsBox
+                    .classList
+                    .remove('open');
+            }
+        }
+    );
 
-           تقريباً من y=95
-           إلى y=165
-        */
 
-        let nameText =
-            name;
 
+    searchInput.addEventListener(
+        'blur',
+        () => {
 
-        /*
-           لو الاسم طويل جداً
-           نحاول تصغيره تلقائياً.
-        */
+            setTimeout(
+                () => {
 
-        let nameFontSize = 38;
+                    suggestionsBox
+                        .classList
+                        .remove('open');
 
+                },
+                150
+            );
+        }
+    );
 
-        if (nameText.length > 24) {
-            nameFontSize = 34;
-        }
 
-        if (nameText.length > 32) {
-            nameFontSize = 30;
-        }
 
-        if (nameText.length > 40) {
-            nameFontSize = 27;
-        }
+    /* =========================================================
+       تعبئة الاستيكر
+    ========================================================= */
 
 
-        drawTextRTL(
-            ctx,
+    function fillSticker(patient) {
 
-            nameText,
+        selectedPatient =
+            patient;
 
-            PRINT_WIDTH / 2,
 
-            135,
+        searchInput.value =
+            patient.name;
 
-            `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
 
-            370
-        );
+        suggestionsBox
+            .classList
+            .remove('open');
 
 
-        /* =====================================================
-           الرقم الموحد
-        ===================================================== */
+        stName.innerText =
+            patient.name || "---";
 
-        const unifiedText =
-            `رقم موحد: ${unified}`;
 
+        stUnifiedId.innerText =
+            patient.unifiedId || "---";
+    }
 
-        drawTextRTL(
-            ctx,
 
-            unifiedText,
 
-            PRINT_WIDTH / 2,
+    /* =========================================================
+       تحميل اللوجو الحراري
+       
+       مهم:
+       هذا اللوجو يستخدم للطباعة فقط.
+       
+       المعاينة تظل باستخدام Picture1.png
+    ========================================================= */
 
-            207,
 
-            `900 31px Tahoma, Arial, sans-serif`,
+    function loadLogoImage() {
 
-            380
-        );
+        return new Promise(
+            (resolve, reject) => {
 
+                const img =
+                    new Image();
 
-        /*
-           تحويل Canvas إلى PNG
-        */
 
-        return canvas.toDataURL(
-            'image/png'
-        );
-    }
+                img.onload =
+                    () => {
 
+                        resolve(img);
+                    };
 
-    /* =========================================================
-       الطباعة
-    ========================================================= */
 
-    async function printStickers() {
+                img.onerror =
+                    () => {
 
-        const printContainer =
-            document.getElementById(
-                'print-container'
-            );
+                        const fallback =
+                            new Image();
 
 
-        /* -----------------------------------------------------
-           التأكد من البيانات
-        ----------------------------------------------------- */
+                        fallback.onload =
+                            () => {
 
-        if (
-            dataStatus === 'loading'
-        ) {
+                                resolve(
+                                    fallback
+                                );
+                            };
 
-            const proceed =
-                confirm(
-                    '⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟'
-                );
 
-            if (!proceed) {
-                return;
-            }
-        }
+                        fallback.onerror =
+                            reject;
 
 
-        if (
-            !selectedPatient &&
-            stName.innerText.trim() ===
-                'اسم المريض'
-        ) {
+                        fallback.src =
+                            'TWEAKS/MEpics/sidnawi_thermal_logo.png';
+                    };
 
-            const proceed =
-                confirm(
-                    '⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟'
-                );
 
-            if (!proceed) {
-                return;
-            }
-        }
+                /*
+                   اللوجو الأسود المخصص
+                   للطباعة الحرارية
+                */
 
+                img.src =
+                    'MEpics/sidnawi_thermal_logo.png';
+            }
+        );
+    }
 
-        let copies =
-            parseInt(
-                copiesCount.value,
-                10
-            );
 
 
-        if (
-            isNaN(copies) ||
-            copies < 1
-        ) {
-            copies = 1;
-        }
+    /* =========================================================
+       رسم النص العربي على Canvas
+       
+       دعم RTL
+       
+       عربي + أرقام + رموز
+    ========================================================= */
 
 
-        if (copies > 50) {
-            copies = 50;
-        }
+    function drawTextRTL(
+        ctx,
+        text,
+        x,
+        y,
+        font,
+        maxWidth
+    ) {
 
+        ctx.save();
 
-        if (copies > 10) {
 
-            const proceed =
-                confirm(
-                    `عدد النسخ المطلوب ${copies} استيكر. هل أنت متأكد؟`
-                );
+        /* -----------------------------------------------------
+           اتجاه الـ Canvas نفسه RTL
+        ----------------------------------------------------- */
 
-            if (!proceed) {
-                return;
-            }
-        }
+        ctx.canvas.dir =
+            'rtl';
 
 
-        /*
-           إظهار حالة تجهيز الطباعة
-        */
+        /* -----------------------------------------------------
+           اتجاه النص RTL
+        ----------------------------------------------------- */
 
-        const printButton =
-            document.querySelector(
-                '.btn-print'
-            );
+        ctx.direction =
+            'rtl';
 
 
-        const oldButtonText =
-            printButton.innerText;
+        /* -----------------------------------------------------
+           المحاذاة
+        ----------------------------------------------------- */
 
+        ctx.textAlign =
+            'center';
 
-        printButton.disabled = true;
 
-        printButton.innerText =
-            '⏳ تجهيز الطباعة...';
+        ctx.textBaseline =
+            'middle';
 
 
-        try {
+        /* -----------------------------------------------------
+           الخط
+        ----------------------------------------------------- */
 
-            printContainer.innerHTML =
-                '';
+        ctx.font =
+            font;
 
 
-            /*
-               إنشاء Bitmap واحد فقط
-               ثم استخدامه لكل النسخ.
+        /* -----------------------------------------------------
+           الأسود الخالص
+        ----------------------------------------------------- */
 
-               هذا أفضل وأسرع،
-               لأن كل النسخ متطابقة.
-            */
+        ctx.fillStyle =
+            '#000000';
 
-            const imageData =
-                await createThermalSticker();
 
+        ctx.strokeStyle =
+            '#000000';
 
-            for (
-                let i = 0;
-                i < copies;
-                i++
-            ) {
 
-                const img =
-                    document.createElement(
-                        'img'
-                    );
+        /* -----------------------------------------------------
+           زيادة بسيطة في سماكة الحروف
+        ----------------------------------------------------- */
 
+        ctx.lineWidth =
+            0.35;
 
-                img.className =
-                    'thermal-print-image';
 
+        /* -----------------------------------------------------
+           Stroke
+        ----------------------------------------------------- */
 
-                img.src =
-                    imageData;
+        ctx.strokeText(
+            text,
+            x,
+            y,
+            maxWidth
+        );
 
 
-                img.width =
-                    PRINT_WIDTH;
+        /* -----------------------------------------------------
+           Fill
+        ----------------------------------------------------- */
 
+        ctx.fillText(
+            text,
+            x,
+            y,
+            maxWidth
+        );
 
-                img.height =
-                    PRINT_HEIGHT;
 
+        ctx.restore();
+    }
 
-                printContainer
-                    .appendChild(img);
-            }
 
 
-            /*
-               ننتظر حتى يتأكد المتصفح
-               أن الصور أصبحت جاهزة.
-            */
+    /* =========================================================
+       إنشاء Bitmap للاستكر
+    ========================================================= */
 
-            await new Promise(
-                resolve =>
-                    requestAnimationFrame(
-                        () =>
-                            requestAnimationFrame(
-                                resolve
-                            )
-                    )
-            );
 
+    async function createThermalSticker() {
 
-            /*
-               الطباعة
-            */
+        /* =====================================================
+           Landscape مباشر
+           المقاس النهائي: 50 × 30 mm
+           203 DPI ≈ 400 × 240 px
+        ===================================================== */
 
-            window.print();
+        const canvas =
+            document.createElement('canvas');
 
-        }
+        canvas.width =
+            PRINT_WIDTH;
 
-        catch (error) {
+        canvas.height =
+            PRINT_HEIGHT;
 
-            console.error(error);
+        canvas.dir =
+            'rtl';
 
-            alert(
-                'حدث خطأ أثناء تجهيز الاستيكر للطباعة.'
-            );
+        const ctx =
+            canvas.getContext(
+                '2d',
+                {
+                    alpha: false
+                }
+            );
 
-        }
+        ctx.direction =
+            'rtl';
 
-        finally {
+        /* خلفية بيضاء خالصة */
 
-            printButton.disabled =
-                false;
+        ctx.fillStyle =
+            '#ffffff';
 
-            printButton.innerText =
-                oldButtonText;
-        }
-    }
+        ctx.fillRect(
+            0,
+            0,
+            PRINT_WIDTH,
+            PRINT_HEIGHT
+        );
 
 
-    /* =========================================================
-       تشغيل تحميل البيانات
-    ========================================================= */
+        /* -----------------------------------------------------
+           بيانات المريض الحالية
+        ----------------------------------------------------- */
 
-    loadData();
+        const name =
+            stName.innerText
+                .trim() ||
+            '---';
+
+        const unified =
+            stUnifiedId.innerText
+                .trim() ||
+            '---';
+
+
+        /* =====================================================
+           اللوجو الحراري - أصغر شوية
+        ===================================================== */
+
+        try {
+
+            const logo =
+                await loadLogoImage();
+
+            const maxLogoWidth =
+                280;
+
+            const maxLogoHeight =
+                60;
+
+            const ratio =
+                Math.min(
+                    maxLogoWidth /
+                        logo.naturalWidth,
+                    maxLogoHeight /
+                        logo.naturalHeight
+                );
+
+            const logoWidth =
+                logo.naturalWidth *
+                ratio;
+
+            const logoHeight =
+                logo.naturalHeight *
+                ratio;
+
+            const logoX =
+                (
+                    PRINT_WIDTH -
+                    logoWidth
+                ) / 2;
+
+            const logoY =
+                8;
+
+            ctx.imageSmoothingEnabled =
+                false;
+
+            ctx.drawImage(
+                logo,
+                logoX,
+                logoY,
+                logoWidth,
+                logoHeight
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                'Logo could not be loaded',
+                error
+            );
+        }
+
+
+        /* =====================================================
+           اسم المريض - سطر واحد فقط
+           يبدأ كبير ويصغر تلقائياً عند الحاجة
+        ===================================================== */
+
+        const nameText =
+            name.trim();
+
+        let nameFontSize =
+            38;
+
+        const nameMaxWidth =
+            360;
+
+        ctx.font =
+            `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
+
+        while (
+            ctx.measureText(nameText).width > nameMaxWidth
+            &&
+            nameFontSize > 25
+        ) {
+
+            nameFontSize--;
+
+            ctx.font =
+                `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
+        }
+
+        drawTextRTL(
+            ctx,
+            nameText,
+            PRINT_WIDTH / 2,
+            125,
+            `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
+            nameMaxWidth
+        );
+
+
+        /* =====================================================
+           الرقم الموحد - أصغر من الاسم وبعيد عن الحواف
+        ===================================================== */
+
+        const unifiedText =
+            `رقم موحد: ${unified}`;
+
+        drawTextRTL(
+            ctx,
+            unifiedText,
+            PRINT_WIDTH / 2,
+            190,
+            `900 27px Tahoma, Arial, sans-serif`,
+            340
+        );
+
+
+        /* =====================================================
+           Canvas → PNG
+        ===================================================== */
+
+        return canvas.toDataURL(
+            'image/png'
+        );
+    }
+
+
+    /* =========================================================
+       طباعة الاستيكرات
+    ========================================================= */
+
+
+    async function printStickers() {
+
+        const printContainer =
+            document.getElementById(
+                'print-container'
+            );
+
+
+
+        /* =====================================================
+           التحقق من البيانات
+        ===================================================== */
+
+
+        if (
+            dataStatus === 'loading'
+        ) {
+
+            const proceed =
+                confirm(
+                    '⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟'
+                );
+
+
+            if (!proceed) {
+
+                return;
+            }
+        }
+
+
+
+        if (
+            !selectedPatient &&
+            stName.innerText.trim() ===
+                'اسم المريض'
+        ) {
+
+            const proceed =
+                confirm(
+                    '⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟'
+                );
+
+
+            if (!proceed) {
+
+                return;
+            }
+        }
+
+
+
+        /* =====================================================
+           عدد النسخ
+        ===================================================== */
+
+
+        let copies =
+            parseInt(
+                copiesCount.value,
+                10
+            );
+
+
+        if (
+            isNaN(copies) ||
+            copies < 1
+        ) {
+
+            copies = 1;
+        }
+
+
+        if (
+            copies > 50
+        ) {
+
+            copies = 50;
+        }
+
+
+
+        if (
+            copies > 10
+        ) {
+
+            const proceed =
+                confirm(
+                    `عدد النسخ المطلوب ${copies} استيكر. هل أنت متأكد؟`
+                );
+
+
+            if (!proceed) {
+
+                return;
+            }
+        }
+
+
+
+        /* =====================================================
+           زر الطباعة
+        ===================================================== */
+
+
+        const printButton =
+            document.querySelector(
+                '.btn-print'
+            );
+
+
+        const oldButtonText =
+            printButton.innerText;
+
+
+        printButton.disabled =
+            true;
+
+
+        printButton.innerText =
+            '⏳ تجهيز الطباعة...';
+
+
+
+        try {
+
+            /* -------------------------------------------------
+               تنظيف الحاوية
+            ------------------------------------------------- */
+
+            printContainer.innerHTML =
+                '';
+
+
+
+            /* -------------------------------------------------
+               إنشاء Bitmap واحد
+            ------------------------------------------------- */
+
+            const imageData =
+                await createThermalSticker();
+
+
+
+            /* -------------------------------------------------
+               إنشاء النسخ
+            ------------------------------------------------- */
+
+            const imagePromises =
+                [];
+
+
+            for (
+                let i = 0;
+                i < copies;
+                i++
+            ) {
+
+                const img =
+                    document.createElement(
+                        'img'
+                    );
+
+
+                img.className =
+                    'thermal-print-image';
+
+
+                img.width =
+                    PRINT_WIDTH;
+
+
+                img.height =
+                    PRINT_HEIGHT;
+
+
+                img.src =
+                    imageData;
+
+
+                printContainer
+                    .appendChild(
+                        img
+                    );
+
+
+                /*
+                   انتظار تحميل الصورة
+                   قبل الطباعة
+                */
+
+                if (
+                    img.decode
+                ) {
+
+                    imagePromises.push(
+                        img.decode()
+                            .catch(
+                                () => {}
+                            )
+                    );
+
+                }
+
+                else {
+
+                    imagePromises.push(
+                        new Promise(
+                            resolve => {
+
+                                if (
+                                    img.complete
+                                ) {
+
+                                    resolve();
+
+                                }
+
+                                else {
+
+                                    img.onload =
+                                        resolve;
+
+                                    img.onerror =
+                                        resolve;
+                                }
+                            }
+                        )
+                    );
+                }
+            }
+
+
+
+            /* -------------------------------------------------
+               التأكد أن كل الصور جاهزة
+            ------------------------------------------------- */
+
+            await Promise.all(
+                imagePromises
+            );
+
+
+
+            /* -------------------------------------------------
+               إعطاء المتصفح فرصة لإكمال الرسم
+            ------------------------------------------------- */
+
+            await new Promise(
+                resolve => {
+
+                    requestAnimationFrame(
+                        () => {
+
+                            requestAnimationFrame(
+                                resolve
+                            );
+                        }
+                    );
+                }
+            );
+
+
+
+            /* -------------------------------------------------
+               الطباعة
+            ------------------------------------------------- */
+
+            window.print();
+
+        }
+
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            alert(
+                'حدث خطأ أثناء تجهيز الاستيكر للطباعة.'
+            );
+        }
+
+
+        finally {
+
+            printButton.disabled =
+                false;
+
+
+            printButton.innerText =
+                oldButtonText;
+        }
+    }
+
+
+
+    /* =========================================================
+       تحميل البيانات عند فتح الصفحة
+    ========================================================= */
+
+
+    loadData();
 
 </script>
 
