@@ -246,18 +246,22 @@
         }
 
         .preview-st-name {
-            position: absolute;
+           position: absolute;
             top: 7mm;
             left: 0;
             right: 0;
             text-align: center;
             font-weight: 900;
             color: #000000 !important;
-            /* منعنا الـ ellipsis عشان الاسم ميتقصش، وهنصغره بالجافاسكريبت */
-            white-space: nowrap;
+            /* التعديل هنا: السماح بنزول النص لسطر جديد */
+            white-space: normal; 
+            line-height: 1.2;
             padding: 0 2mm;
             outline: none;
             transition: font-size 0.2s;
+            /* تحديد أقصى ارتفاع عشان ميغطيش على الرقم الموحد */
+            max-height: 12mm;
+            overflow: hidden;
         }
 
         .preview-st-unified {
@@ -403,15 +407,15 @@
 
     // تصغير الخط أوتوماتيك في المعاينة لو الاسم طويل
     function adjustPreviewNameSize() {
-        const text = stName.innerText.trim();
+       const text = stName.innerText.trim();
         if (text.length > 35) {
-            stName.style.fontSize = '12px';
+            stName.style.fontSize = '10px';
         } else if (text.length > 25) {
-            stName.style.fontSize = '14px';
+            stName.style.fontSize = '12px';
         } else if (text.length > 18) {
-            stName.style.fontSize = '17px';
+            stName.style.fontSize = '14px';
         } else {
-            stName.style.fontSize = '21px'; // الخط الأساسي الكبير
+            stName.style.fontSize = '18px'; 
         }
     }
 
