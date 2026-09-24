@@ -467,23 +467,19 @@
     let hideStatusTimer = null;
 
     async function loadData() {
-        if (hideStatusTimer) {
-            clearTimeout(hideStatusTimer);
-            hideStatusTimer = null;
-        }
-
         dataStatus = 'loading';
         refreshBtn.disabled = true;
         loadingMsg.style.display = 'block';
-        loadingMsg.innerText = dataLoadedOnce
-            ? 'جاري تحديث بيانات المرضى من الشيت... ⏳'
-            : 'جاري تحميل بيانات المرضى من الشيت... ⏳';
+        loadingMsg.innerText = 'جاري تحميل البيانات من الشيت... ⏳';
         loadingMsg.style.color = '#2563eb';
 
         try {
-            // استخدام رابط بسيط مع كسر الكاش لتجنب حظر جوجل (CORS)
-            const freshUrl = CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-            const response = await fetch(freshUrl);
+            const response = await fetch(
+                CSV_URL +
+                (CSV_URL.includes('?') ? '&' : '?') +
+                'cachebust=' +
+                Date.now()
+            );
 
             if (!response.ok) {
                 throw new Error("Error fetching CSV");
@@ -492,28 +488,70 @@
             const csvText = await response.text();
 
             const lines = csvText
-                .replace(/^\uFEFF/, '') // إزالة أي رموز غير مرئية في بداية الملف
                 .split(/\r\n|\n/)
                 .filter(l => l.trim() !== '');
 
             if (lines.length < 2) {
-                throw new Error("No data in sheet");
+                loadingMsg.innerText = '⚠️ لا توجد بيانات في الشيت';
+                loadingMsg.style.color = '#dc2626';
+                dataStatus = 'error';
+                refreshBtn.disabled = false;
+                return;
             }
 
             const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
             const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
             const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
 
-            const newPatientsList = [];
+            const tempPatients = [];
 
             for (let i = 1; i < lines.length; i++) {
-                const cols = parseCSVLine(lines[i]);
+                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
                 if (colName !== -1 && cols[colName]) {
-                    newPatientsList.push({
-                        name: cols[colName].replace(/^"|"$/g, '').trim() || '',
-                        unifiedId: (colUnified !== -1 && cols[colUnified]) ? cols[colUnified].replace(/^"|"$/g, '').trim() : ''
+                    tempPatients.push({
+                        name: cols[colName] || '',
+                        unifiedId: colUnified !== -1 ? cols[colUnified] : ''
                     });
                 }
+            }
+
+            patientsList = tempPatients;
+            dataStatus = 'ready';
+
+            // تصفير البحث
+            currentMatches = [];
+            activeIndex = -1;
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('open');
+
+            // تحديث الاستيكر لو كنت مختار مريض بالفعل
+            if (selectedPatient) {
+                const updatedPatient = patientsList.find(
+                    p => normalizeArabic(p.name) === normalizeArabic(selectedPatient.name)
+                );
+                if (updatedPatient) {
+                    selectedPatient = updatedPatient;
+                    stName.value = updatedPatient.name || '---';
+                    stUnifiedId.value = updatedPatient.unifiedId || '---';
+                    updatePreview();
+                }
+            }
+
+            loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
+            loadingMsg.style.color = '#10b981';
+            refreshBtn.disabled = false;
+
+            setTimeout(() => {
+                loadingMsg.style.display = 'none';
+            }, 3000);
+
+        } catch (error) {
+            console.error(error);
+            loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            loadingMsg.style.color = '#dc2626';
+            dataStatus = 'error';
+            refreshBtn.disabled = false;
+        }
             }
 
             patientsList = newPatientsList;
