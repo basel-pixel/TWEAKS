@@ -517,29 +517,7 @@
     let dataLoadedOnce = false;
     let hideStatusTimer = null;
 
-    // حماية من الضغط المتكرر على زر التحديث
-    let isLoadingPatients = false;
-    let lastRefreshStartedAt = 0;
-
     async function loadData() {
-
-        // لو فيه تحميل شغال بالفعل، تجاهل أي ضغطات إضافية
-        if (isLoadingPatients) {
-            loadingMsg.style.display = 'block';
-            loadingMsg.innerText = '⏳ جاري التحديث بالفعل...';
-            loadingMsg.style.color = '#2563eb';
-            return;
-        }
-
-        // منع الضغطات السريعة جداً حتى بعد انتهاء الطلب مباشرة
-        const nowMs = Date.now();
-        if (nowMs - lastRefreshStartedAt < 1000) {
-            return;
-        }
-
-        lastRefreshStartedAt = nowMs;
-        isLoadingPatients = true;
-
         if (hideStatusTimer) {
             clearTimeout(hideStatusTimer);
             hideStatusTimer = null;
@@ -566,28 +544,16 @@
 
             let response;
 
-            // مهلة قصوى للطلب حتى لا يظل الموقع معلقاً لو الشبكة علقت
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
-
             try {
                 response = await fetch(freshUrl, {
-                    cache: 'no-store',
-                    signal: controller.signal
+                    cache: 'no-store'
                 });
             } catch (firstError) {
-                if (firstError && firstError.name === 'AbortError') {
-                    throw new Error('انتهت مهلة الاتصال بالشيت');
-                }
-
                 console.warn('Fresh CSV request failed, retrying original URL:', firstError);
 
                 response = await fetch(CSV_URL, {
-                    cache: 'no-store',
-                    signal: controller.signal
+                    cache: 'no-store'
                 });
-            } finally {
-                clearTimeout(timeoutId);
             }
 
             if (!response.ok) {
@@ -739,10 +705,6 @@
             }
 
             loadingMsg.style.color = '#dc2626';
-
-        } finally {
-            // مهم جداً: فك القفل في كل الحالات، سواء نجح أو فشل الطلب
-            isLoadingPatients = false;
             refreshBtn.disabled = false;
         }
     }
