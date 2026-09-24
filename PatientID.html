@@ -9,12 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            /* المعاينة على الشاشة ستظل بالعرض لسهولة القراءة */
-            --label-width: 50mm;
-            --label-height: 30mm;
-        }
-
         * {
             box-sizing: border-box;
         }
@@ -234,40 +228,41 @@
         }
 
         /* =========================================================
-           الاستيكر الخاص بالمعاينة (مريح وسهل التعديل زي الأول)
+           الاستيكر الخاص بالمعاينة 
+           تم تثبيته ليكون 50 بالعرض و 30 بالطول ليناسب التعديل المريح
         ========================================================= */
         .sticker {
-            width: var(--label-width);
-            height: var(--label-height);
+            width: 50mm !important;
+            height: 30mm !important;
             background: #ffffff;
-            border: 1px dashed #000000;
+            border: 2px dashed #64748b;
             box-sizing: border-box;
             padding: 0;
             position: relative;
             overflow: hidden;
             color: #000000 !important;
             font-family: Tahoma, Arial, sans-serif;
+            border-radius: 4px;
         }
 
         .preview-st-name {
             position: absolute;
-            top: 6mm;
+            top: 7mm;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 18px;
             font-weight: 900;
             color: #000000 !important;
+            /* منعنا الـ ellipsis عشان الاسم ميتقصش، وهنصغره بالجافاسكريبت */
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             padding: 0 2mm;
             outline: none;
+            transition: font-size 0.2s;
         }
 
         .preview-st-unified {
             position: absolute;
-            top: 15mm;
+            top: 17mm;
             left: 0;
             right: 0;
             text-align: center;
@@ -376,7 +371,7 @@
         </div>
 
         <div class="preview-section">
-            <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
+            <div class="preview-title">معاينة الاستيكر (الاسم يصغر تلقائياً ليناسب سطر واحد)</div>
             
             <!-- المعاينة بالعرض لسهولة القراءة ويمكن التعديل عليها مباشرة -->
             <div class="sticker" id="preview-sticker">
@@ -394,6 +389,7 @@
     <div id="print-container"></div>
 
 <script>
+    // الرابط السليم للـ CSV 
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
     let patientsList = [];
@@ -404,6 +400,23 @@
     const copiesCount = document.getElementById('copies-count');
     const stName = document.getElementById('st-name');
     const stUnifiedId = document.getElementById('st-unified-id');
+
+    // تصغير الخط أوتوماتيك في المعاينة لو الاسم طويل
+    function adjustPreviewNameSize() {
+        const text = stName.innerText.trim();
+        if (text.length > 35) {
+            stName.style.fontSize = '12px';
+        } else if (text.length > 25) {
+            stName.style.fontSize = '14px';
+        } else if (text.length > 18) {
+            stName.style.fontSize = '17px';
+        } else {
+            stName.style.fontSize = '21px'; // الخط الأساسي الكبير
+        }
+    }
+
+    // تفعيل التصغير عند التعديل اليدوي
+    stName.addEventListener('input', adjustPreviewNameSize);
 
     function normalizeArabic(text) {
         return String(text || '').trim().toLowerCase()
@@ -439,9 +452,6 @@
 
     let dataStatus = 'loading';
 
-    /* =========================================================
-       تحميل البيانات من الشيت باستخدام الرابط الصافي
-    ========================================================= */
     async function loadData() {
         dataStatus = 'loading';
         refreshBtn.disabled = true;
@@ -450,35 +460,35 @@
         loadingMsg.style.color = '#2563eb';
 
         try {
-            const response = await fetch(CSV_URL);
+            const fetchUrl = CSV_URL + '&v=' + Date.now();
+            const response = await fetch(fetchUrl);
 
             if (!response.ok) {
-                throw new Error("Error fetching CSV");
+                throw new Error(`الرابط لا يعمل (كود الخطأ: ${response.status}).`);
             }
 
-            const csvText = await response.text();
+            let csvText = await response.text();
+            csvText = csvText.replace(/^\uFEFF/, ''); 
 
-            const lines = csvText
-                .split(/\r\n|\n/)
-                .filter(l => l.trim() !== '');
+            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
 
             if (lines.length < 2) {
-                loadingMsg.innerText = '⚠️ لا توجد بيانات في الشيت';
-                loadingMsg.style.color = '#dc2626';
-                dataStatus = 'error';
-                refreshBtn.disabled = false;
-                return;
+                throw new Error("الشيت تم تحميله ولكنه فارغ من البيانات!");
             }
 
             const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
             const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
-            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
+            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي') || h.includes('رقم'));
+
+            if (colName === -1) {
+                throw new Error("لم يتم العثور على عمود (اسم المريض) - الأعمدة المتاحة: " + headers.join(" | "));
+            }
 
             const tempPatients = [];
 
             for (let i = 1; i < lines.length; i++) {
                 const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
-                if (colName !== -1 && cols[colName]) {
+                if (cols[colName]) {
                     tempPatients.push({
                         name: cols[colName] || '',
                         unifiedId: colUnified !== -1 ? cols[colUnified] : ''
@@ -489,7 +499,6 @@
             patientsList = tempPatients;
             dataStatus = 'ready';
 
-            // تصفير البحث
             currentMatches = [];
             activeIndex = -1;
             suggestionsBox.innerHTML = '';
@@ -497,17 +506,17 @@
 
             loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
             loadingMsg.style.color = '#10b981';
-            refreshBtn.disabled = false;
 
             setTimeout(() => {
                 loadingMsg.style.display = 'none';
-            }, 3000);
+            }, 4000);
 
         } catch (error) {
-            console.error(error);
-            loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            console.error("خطأ التحميل:", error);
+            loadingMsg.innerText = '⚠️ خطأ: ' + error.message;
             loadingMsg.style.color = '#dc2626';
             dataStatus = 'error';
+        } finally {
             refreshBtn.disabled = false;
         }
     }
@@ -580,13 +589,19 @@
         setTimeout(() => suggestionsBox.classList.remove('open'), 150)
     );
 
+    let selectedPatient = null;
+
     function fillSticker(patient) {
         selectedPatient = patient;
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
-        // تعبئة البيانات في المعاينة
+        
+        // تعبئة البيانات
         stName.innerText = patient.name || "---";
         stUnifiedId.innerText = patient.unifiedId || "---";
+
+        // تصغير الخط لو الاسم طويل
+        adjustPreviewNameSize();
     }
 
     function loadLogoImage() {
@@ -643,7 +658,6 @@
         const LOGICAL_WIDTH = 400;
         const LOGICAL_HEIGHT = 240;
 
-        // نقرأ النص المكتوب في المعاينة وقت الطباعة
         const name = stName.innerText.trim() || '---';
         const unified = stUnifiedId.innerText.trim() || '---';
 
@@ -670,7 +684,7 @@
             console.warn('Logo could not be loaded', error);
         }
 
-        // رسم الاسم
+        // رسم الاسم بالبنط المناسب
         let nameFontSize = 45;
         if (name.length > 18) nameFontSize = 38;
         if (name.length > 28) nameFontSize = 32;
@@ -680,7 +694,7 @@
             ctx,
             name,
             LOGICAL_WIDTH / 2,
-            58, 
+            65, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
@@ -691,7 +705,7 @@
             ctx,
             unifiedText,
             LOGICAL_WIDTH / 2,
-            125, 
+            135, 
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
@@ -752,7 +766,8 @@
         }
     }
 
-    // بدء تحميل البيانات فور فتح الصفحة
+    // بدء تحميل البيانات فور فتح الصفحة وتظبيط المعاينة المبدئية
+    adjustPreviewNameSize();
     loadData();
 </script>
 
