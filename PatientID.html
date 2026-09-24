@@ -421,85 +421,287 @@
             .replace(/\s+/g, ' ');
     }
 
-    function parseCSVLine(text) {
-        let result = [];
-        let current = '';
+    /*
+       قارئ CSV كامل:
+       يدعم الفواصل داخل الخلايا وعلامات الاقتباس وحتى أسطر جديدة داخل الخلية.
+    */
+    function parseCSV(text) {
+        const rows = [];
+        let row = [];
+        let cell = '';
         let inQuotes = false;
+
+        text = String(text || '').replace(/^\uFEFF/, '');
 
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
+
             if (char === '"') {
                 if (inQuotes && text[i + 1] === '"') {
-                    current += '"';
+                    cell += '"';
                     i++;
                 } else {
                     inQuotes = !inQuotes;
                 }
             } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
+                row.push(cell.trim());
+                cell = '';
+            } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                if (char === '\r' && text[i + 1] === '\n') i++;
+
+                row.push(cell.trim());
+                cell = '';
+
+                if (row.some(value => String(value).trim() !== '')) {
+                    rows.push(row);
+                }
+
+                row = [];
             } else {
-                current += char;
+                cell += char;
             }
         }
-        result.push(current.trim());
-        return result;
+
+        if (cell.length > 0 || row.length > 0) {
+            row.push(cell.trim());
+
+            if (row.some(value => String(value).trim() !== '')) {
+                rows.push(row);
+            }
+        }
+
+        return rows;
+    }
+
+    function cleanCell(value) {
+        return String(value ?? '')
+            .replace(/^\uFEFF/, '')
+            .replace(/[\u200B-\u200D\u2060]/g, '')
+            .trim();
+    }
+
+    function normalizeHeader(value) {
+        return normalizeArabic(cleanCell(value))
+            .replace(/[^\u0600-\u06FFa-z0-9]+/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function findColumnIndex(headers, preferredNames) {
+        const normalizedHeaders = headers.map(normalizeHeader);
+        const normalizedPreferred = preferredNames.map(normalizeHeader);
+
+        // الأول: تطابق كامل
+        for (const wanted of normalizedPreferred) {
+            const index = normalizedHeaders.findIndex(header => header === wanted);
+            if (index !== -1) return index;
+        }
+
+        // الثاني: تطابق جزئي لو اسم العمود أطول
+        for (const wanted of normalizedPreferred) {
+            const index = normalizedHeaders.findIndex(header => header.includes(wanted));
+            if (index !== -1) return index;
+        }
+
+        return -1;
     }
 
     let dataStatus = 'loading';
+    let dataLoadedOnce = false;
+    let loadRequestNumber = 0;
+    let hideStatusTimer = null;
+    let activeLoadController = null;
 
     async function loadData() {
+        const requestNumber = ++loadRequestNumber;
+
+        if (hideStatusTimer) {
+            clearTimeout(hideStatusTimer);
+            hideStatusTimer = null;
+        }
+
+        // لو المستخدم ضغط تحديث أثناء طلب قديم، نلغي الطلب القديم
+        if (activeLoadController) {
+            activeLoadController.abort();
+        }
+
+        activeLoadController = new AbortController();
+        const controller = activeLoadController;
+
+        // Timeout حتى لا يظل الموقع معلقاً لو الاتصال توقف
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         dataStatus = 'loading';
         refreshBtn.disabled = true;
         loadingMsg.style.display = 'block';
-        loadingMsg.innerText = 'جاري تحميل البيانات من الشيت... ⏳';
+        loadingMsg.innerText = dataLoadedOnce
+            ? 'جاري تحديث بيانات المرضى من الشيت... ⏳'
+            : 'جاري تحميل بيانات المرضى من الشيت... ⏳';
         loadingMsg.style.color = '#2563eb';
 
         try {
-            const response = await fetch(CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
-            if (!response.ok) throw new Error("Error fetching CSV");
+            const separator = CSV_URL.includes('?') ? '&' : '?';
+            const freshUrl =
+                CSV_URL +
+                separator +
+                'cachebust=' +
+                Date.now() +
+                '-' +
+                requestNumber;
 
-            const csvText = await response.text();
-            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+            const response = await fetch(freshUrl, {
+                method: 'GET',
+                cache: 'no-store',
+                credentials: 'omit',
+                signal: controller.signal
+            });
 
-            if (lines.length < 2) {
-                loadingMsg.innerText = '⚠️ لا توجد بيانات في الشيت';
-                loadingMsg.style.color = '#dc2626';
-                dataStatus = 'error';
-                refreshBtn.disabled = false;
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
-            const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
-            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
+            const csvText = await response.text();
 
-            patientsList = [];
-            for (let i = 1; i < lines.length; i++) {
-                const cols = parseCSVLine(lines[i]);
-                if (colName !== -1 && cols[colName]) {
-                    patientsList.push({
-                        name: cols[colName].replace(/^"|"$/g, '').trim() || '',
-                        unifiedId: (colUnified !== -1 && cols[colUnified]) ? cols[colUnified].replace(/^"|"$/g, '').trim() : ''
-                    });
+            if (!csvText || !csvText.trim()) {
+                throw new Error('Empty CSV response');
+            }
+
+            const rows = parseCSV(csvText);
+
+            if (rows.length < 2) {
+                throw new Error('No patient rows found');
+            }
+
+            const headers = rows[0].map(cleanCell);
+
+            /*
+               نبحث بأسماء واضحة أولاً حتى لا نلتقط عموداً خاطئاً
+               لو كان هناك أكثر من عمود يحتوي على كلمة "اسم" أو "طبي".
+            */
+            const colName = findColumnIndex(headers, [
+                'اسم المريض',
+                'اسم المريض رباعي',
+                'المريض',
+                'الاسم'
+            ]);
+
+            const colUnified = findColumnIndex(headers, [
+                'رقم موحد',
+                'الرقم الموحد',
+                'الرقم الطبي',
+                'رقم طبي',
+                'رقم المريض',
+                'موحد'
+            ]);
+
+            if (colName === -1) {
+                throw new Error(
+                    'لم يتم العثور على عمود اسم المريض. الأعمدة الموجودة: ' +
+                    headers.join(' | ')
+                );
+            }
+
+            const newPatientsList = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i];
+                const patientName = cleanCell(cols[colName]);
+
+                if (!patientName) continue;
+
+                newPatientsList.push({
+                    name: patientName,
+                    unifiedId:
+                        colUnified !== -1
+                            ? cleanCell(cols[colUnified])
+                            : ''
+                });
+            }
+
+            if (newPatientsList.length === 0) {
+                throw new Error('لم يتم العثور على مرضى صالحين داخل الشيت');
+            }
+
+            // نتأكد أن هذه هي أحدث عملية تحميل قبل استبدال البيانات
+            if (requestNumber !== loadRequestNumber) return;
+
+            patientsList = newPatientsList;
+            dataStatus = 'ready';
+            dataLoadedOnce = true;
+
+            /*
+               لو فيه مريض مختار حالياً وتم تعديل بياناته في الشيت،
+               نحدّث الاستيكر تلقائياً بشرط أن يكون الاسم فريداً.
+            */
+            if (selectedPatient) {
+                const sameNamePatients = patientsList.filter(
+                    patient =>
+                        normalizeArabic(patient.name) ===
+                        normalizeArabic(selectedPatient.name)
+                );
+
+                if (sameNamePatients.length === 1) {
+                    selectedPatient = sameNamePatients[0];
+                    stName.innerText = selectedPatient.name || '---';
+                    stUnifiedId.innerText = selectedPatient.unifiedId || '---';
                 }
             }
 
-            loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
-            loadingMsg.style.color = '#10b981';
-            dataStatus = 'ready';
-            refreshBtn.disabled = false;
+            // نقفل أي اقتراحات قديمة حتى البحث التالي يستخدم البيانات الجديدة
+            currentMatches = [];
+            activeIndex = -1;
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.classList.remove('open');
 
-            setTimeout(() => {
-                loadingMsg.style.display = 'none';
-            }, 3000);
+            const now = new Date();
+            const updateTime = now.toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            loadingMsg.innerText =
+                `✅ تم تحديث ${patientsList.length} مريض — آخر تحديث ${updateTime}`;
+
+            loadingMsg.style.color = '#10b981';
+
+            hideStatusTimer = setTimeout(() => {
+                if (dataStatus === 'ready') {
+                    loadingMsg.style.display = 'none';
+                }
+            }, 4000);
 
         } catch (error) {
-            console.error(error);
-            loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            if (requestNumber !== loadRequestNumber) return;
+
+            console.error('Patient sheet loading error:', error);
+
+            /*
+               لو سبق تحميل البيانات بنجاح ثم فشل التحديث،
+               نحتفظ بالبيانات القديمة بدلاً من مسحها.
+            */
+            if (patientsList.length > 0 && dataLoadedOnce) {
+                dataStatus = 'ready';
+                loadingMsg.innerText =
+                    `⚠️ تعذر تحديث الشيت — يتم استخدام آخر بيانات محملة (${patientsList.length} مريض)`;
+            } else {
+                dataStatus = 'error';
+                loadingMsg.innerText =
+                    '⚠️ تعذر تحميل بيانات المرضى من الشيت. تأكد من الإنترنت ونشر الشيت كـ CSV.';
+            }
+
             loadingMsg.style.color = '#dc2626';
-            dataStatus = 'error';
-            refreshBtn.disabled = false;
+
+        } finally {
+            clearTimeout(timeoutId);
+
+            if (requestNumber === loadRequestNumber) {
+                refreshBtn.disabled = false;
+
+                if (activeLoadController === controller) {
+                    activeLoadController = null;
+                }
+            }
         }
     }
 
