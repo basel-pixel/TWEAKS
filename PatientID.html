@@ -228,7 +228,8 @@
         }
 
         /* =========================================================
-           الاستيكر الخاص بالمعاينة (على الشاشة بالعرض لسهولة القراءة)
+           الاستيكر الخاص بالمعاينة 
+           تم تثبيته ليكون 50 بالعرض و 30 بالطول ليناسب التعديل المريح
         ========================================================= */
         .sticker {
             width: 50mm !important;
@@ -245,17 +246,22 @@
         }
 
         .preview-st-name {
-            position: absolute;
+          position: absolute;
             top: 7mm;
             left: 0;
             right: 0;
             text-align: center;
             font-weight: 900;
             color: #000000 !important;
-            white-space: nowrap;
+            /* التعديل هنا: السماح بنزول النص لسطر جديد */
+            white-space: normal; 
+            line-height: 1.2;
             padding: 0 2mm;
             outline: none;
             transition: font-size 0.2s;
+            /* تحديد أقصى ارتفاع عشان ميغطيش على الرقم الموحد */
+            max-height: 12mm;
+            overflow: hidden;
         }
 
         .preview-st-unified {
@@ -293,8 +299,7 @@
         }
 
         /* =========================================================
-           إعدادات الطباعة: تحايل على الطابعة لإرسال الورقة كـ Portrait
-           بمقاس (30 عرض × 50 طول) والكود هيلف الكلام جواها
+           إعدادات الطباعة: الورقة ستكون بالطول (30mm عرض × 50mm طول)
         ========================================================= */
         @media print {
             * {
@@ -323,7 +328,7 @@
             }
 
             @page {
-                size: 30mm 50mm; /* الورقة بالطول Portrait خدعة للمكنة */
+                size: 30mm 50mm; /* الورقة بالطول Portrait */
                 margin: 0;
             }
 
@@ -372,6 +377,7 @@
         <div class="preview-section">
             <div class="preview-title">معاينة الاستيكر (الاسم يصغر تلقائياً ليناسب سطر واحد)</div>
             
+            <!-- المعاينة بالعرض لسهولة القراءة ويمكن التعديل عليها مباشرة -->
             <div class="sticker" id="preview-sticker">
                 <div class="preview-st-name" id="st-name" contenteditable="true">اسم المريض</div>
                 <div class="preview-st-unified">
@@ -387,6 +393,7 @@
     <div id="print-container"></div>
 
 <script>
+    // الرابط السليم للـ CSV 
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
     let patientsList = [];
@@ -402,16 +409,17 @@
     function adjustPreviewNameSize() {
         const text = stName.innerText.trim();
         if (text.length > 35) {
-            stName.style.fontSize = '12px';
+            stName.style.fontSize = '10px';
         } else if (text.length > 25) {
-            stName.style.fontSize = '14px';
+            stName.style.fontSize = '12px';
         } else if (text.length > 18) {
-            stName.style.fontSize = '17px';
+            stName.style.fontSize = '14px';
         } else {
-            stName.style.fontSize = '21px'; // الخط الأساسي الكبير
+            stName.style.fontSize = '18px'; 
         }
     }
 
+    // تفعيل التصغير عند التعديل اليدوي
     stName.addEventListener('input', adjustPreviewNameSize);
 
     function normalizeArabic(text) {
@@ -592,9 +600,11 @@
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
         
+        // تعبئة البيانات
         stName.innerText = patient.name || "---";
         stUnifiedId.innerText = patient.unifiedId || "---";
 
+        // تصغير الخط لو الاسم طويل
         adjustPreviewNameSize();
     }
 
@@ -627,13 +637,12 @@
     }
 
     /* 
-       توليد الاستيكر الحراري للطباعة بخدعة الـ Portrait
-       بنعمل الـ Canvas بالطول (240×400) ونلف الكلام جواه 90 درجة 
+       توليد الاستيكر الحراري للطباعة بالطول (Portrait) مع دوران الكلام 90 درجة
     */
     async function createThermalSticker() {
         const canvas = document.createElement('canvas');
         
-        // الأبعاد المقلوبة للطباعة الطولية (30mm عرض و 50mm طول)
+        // الأبعاد المقلوبة للطباعة الطولية (30 عرض و 50 طول)
         canvas.width = 240;  
         canvas.height = 400; 
 
@@ -645,18 +654,18 @@
 
         ctx.save();
 
-        // الخدعة: لفة 90 درجة عشان الكلام يطبع بالعرض جوه الورقة اللي مسحوبة بالطول
+        // لف الـ Canvas 90 درجة في اتجاه عقارب الساعة لتناسب الورقة الطولية
         ctx.translate(240, 0);
         ctx.rotate(90 * Math.PI / 180);
 
-        // مساحة الرسم المنطقية اللي بنرسم جواها براحتنا كأنها بالعرض
+        // هنا بنرسم كأننا في مساحة عرضية (400 عرض و 240 طول)
         const LOGICAL_WIDTH = 400;
         const LOGICAL_HEIGHT = 240;
 
         const name = stName.innerText.trim() || '---';
         const unified = stUnifiedId.innerText.trim() || '---';
 
-        // إضافة اللوجو
+        // إضافة اللوجو للطباعة
         try {
             const logo = await loadLogoImage();
             const maxLogoWidth = 90;
@@ -679,7 +688,7 @@
             console.warn('Logo could not be loaded', error);
         }
 
-        // رسم الاسم مع تصغير الخط إذا كان طويلاً
+        // رسم الاسم بالبنط المناسب
         let nameFontSize = 45;
         if (name.length > 18) nameFontSize = 38;
         if (name.length > 28) nameFontSize = 32;
@@ -689,7 +698,7 @@
             ctx,
             name,
             LOGICAL_WIDTH / 2,
-            58, 
+            65, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
@@ -700,7 +709,7 @@
             ctx,
             unifiedText,
             LOGICAL_WIDTH / 2,
-            125, 
+            135, 
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
@@ -735,7 +744,7 @@
         try {
             printContainer.innerHTML = '';
             
-            // استخراج صورة الطباعة الطولية اللي الكود لاففها
+            // استخراج صورة الطباعة اللي اتلفت 90 درجة
             const imageData = await createThermalSticker();
 
             for (let i = 0; i < copies; i++) {
@@ -761,6 +770,7 @@
         }
     }
 
+    // بدء تحميل البيانات فور فتح الصفحة وتظبيط المعاينة المبدئية
     adjustPreviewNameSize();
     loadData();
 </script>
