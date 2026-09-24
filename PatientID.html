@@ -233,48 +233,59 @@
             transform: scale(0.97);
         }
 
-        /* المعاينة */
-        .exact-preview-wrap {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .exact-preview-canvas {
-            display: block;
-            width: 50mm;
-            height: 30mm;
+        /* =========================================================
+           الاستيكر الخاص بالمعاينة (مريح وسهل التعديل زي الأول)
+        ========================================================= */
+        .sticker {
+            width: var(--label-width);
+            height: var(--label-height);
             background: #ffffff;
             border: 1px dashed #000000;
-            box-sizing: content-box;
-        }
-
-        .manual-edit-box {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin-top: 6px;
-        }
-
-        .manual-edit-box input {
-            width: 100%;
-            padding: 9px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            box-sizing: border-box;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            color: #000000 !important;
             font-family: Tahoma, Arial, sans-serif;
-            font-size: 14px;
-            font-weight: 700;
+        }
+
+        .preview-st-name {
+            position: absolute;
+            top: 6mm;
+            left: 0;
+            right: 0;
             text-align: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: #000000 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 2mm;
             outline: none;
         }
 
-        .manual-edit-box input:focus {
-            border-color: #10b981;
+        .preview-st-unified {
+            position: absolute;
+            top: 15mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 900;
+            color: #000000 !important;
+            white-space: nowrap;
+            outline: none;
         }
 
+        .preview-st-label {
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        /* =========================================================
+           منطقة الطباعة المخفية
+        ========================================================= */
         #print-container {
             display: none;
         }
@@ -330,9 +341,6 @@
                 padding: 0 !important;
                 page-break-after: always;
                 break-after: page;
-                background: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
 
             .thermal-print-image:last-child {
@@ -370,30 +378,12 @@
         <div class="preview-section">
             <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
             
-            <div class="exact-preview-wrap">
-                <!-- المعاينة بالعرض لسهولة القراءة (بدون لوجو) -->
-                <canvas
-                    id="preview-canvas"
-                    class="exact-preview-canvas"
-                    width="400"
-                    height="240"
-                    aria-label="معاينة الاستيكر"
-                ></canvas>
-
-                <div class="manual-edit-box">
-                    <input
-                        type="text"
-                        id="st-name"
-                        value="اسم المريض"
-                        aria-label="اسم المريض"
-                    >
-
-                    <input
-                        type="text"
-                        id="st-unified-id"
-                        value="---"
-                        aria-label="الرقم الموحد"
-                    >
+            <!-- المعاينة بالعرض لسهولة القراءة ويمكن التعديل عليها مباشرة -->
+            <div class="sticker" id="preview-sticker">
+                <div class="preview-st-name" id="st-name" contenteditable="true">اسم المريض</div>
+                <div class="preview-st-unified">
+                    <span class="preview-st-label">رقم موحد:</span>
+                    <span id="st-unified-id" contenteditable="true">---</span>
                 </div>
             </div>
         </div>
@@ -404,20 +394,6 @@
     <div id="print-container"></div>
 
 <script>
-    /* 
-       المقاس المنطقي (الرسم الداخلي): دائمًا 400 عرض × 240 طول
-       حتى يتم رسم الكلام بشكل عرضي (Landscape).
-    */
-    const LOGICAL_WIDTH = 400;
-    const LOGICAL_HEIGHT = 240;
-
-    /* 
-       مقاس الطباعة الفعلي (Portrait): 240 عرض × 400 طول
-       وسيتم لف الـ Canvas بداخله.
-    */
-    const PRINT_CANVAS_WIDTH = 240;
-    const PRINT_CANVAS_HEIGHT = 400;
-
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
     let patientsList = [];
@@ -428,7 +404,6 @@
     const copiesCount = document.getElementById('copies-count');
     const stName = document.getElementById('st-name');
     const stUnifiedId = document.getElementById('st-unified-id');
-    const previewCanvas = document.getElementById('preview-canvas');
 
     function normalizeArabic(text) {
         return String(text || '').trim().toLowerCase()
@@ -465,7 +440,7 @@
     let dataStatus = 'loading';
 
     /* =========================================================
-       تحميل البيانات (باستخدام الرابط الصافي والمباشر)
+       تحميل البيانات من الشيت باستخدام الرابط الصافي
     ========================================================= */
     async function loadData() {
         dataStatus = 'loading';
@@ -519,19 +494,6 @@
             activeIndex = -1;
             suggestionsBox.innerHTML = '';
             suggestionsBox.classList.remove('open');
-
-            // تحديث الاستيكر لو كنت مختار مريض بالفعل
-            if (selectedPatient) {
-                const updatedPatient = patientsList.find(
-                    p => normalizeArabic(p.name) === normalizeArabic(selectedPatient.name)
-                );
-                if (updatedPatient) {
-                    selectedPatient = updatedPatient;
-                    stName.value = updatedPatient.name || '---';
-                    stUnifiedId.value = updatedPatient.unifiedId || '---';
-                    updatePreview();
-                }
-            }
 
             loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
             loadingMsg.style.color = '#10b981';
@@ -622,9 +584,9 @@
         selectedPatient = patient;
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
-        stName.value = patient.name || "---";
-        stUnifiedId.value = patient.unifiedId || "---";
-        updatePreview();
+        // تعبئة البيانات في المعاينة
+        stName.innerText = patient.name || "---";
+        stUnifiedId.innerText = patient.unifiedId || "---";
     }
 
     function loadLogoImage() {
@@ -656,82 +618,75 @@
     }
 
     /* 
-       دالة الرسم:
-       - isPrint = false (للمعاينة): ترسم بالعرض 400x240 (بدون لوجو)
-       - isPrint = true (للطباعة): ترسم بالطول 240x400 وتلف الرسمة 90 درجة (مع اللوجو)
+       توليد الاستيكر الحراري للطباعة بالطول (Portrait) مع دوران الكلام 90 درجة
     */
-    async function createThermalSticker(targetCanvas = null, isPrint = false) {
-        const canvas = targetCanvas || document.createElement('canvas');
+    async function createThermalSticker() {
+        const canvas = document.createElement('canvas');
         
-        if (isPrint) {
-            canvas.width = PRINT_CANVAS_WIDTH;   // 240
-            canvas.height = PRINT_CANVAS_HEIGHT; // 400
-        } else {
-            canvas.width = LOGICAL_WIDTH;        // 400
-            canvas.height = LOGICAL_HEIGHT;      // 240
-        }
+        // الأبعاد المقلوبة للطباعة الطولية (30 عرض و 50 طول)
+        canvas.width = 240;  
+        canvas.height = 400; 
 
         const ctx = canvas.getContext('2d', { alpha: false });
 
+        // خلفية بيضاء
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.save();
 
-        if (isPrint) {
-            // لف الـ Canvas 90 درجة في اتجاه عقارب الساعة لتناسب الورقة الـ Portrait
-            ctx.translate(PRINT_CANVAS_WIDTH, 0);
-            ctx.rotate(90 * Math.PI / 180);
+        // لف الـ Canvas 90 درجة في اتجاه عقارب الساعة لتناسب الورقة الطولية
+        ctx.translate(240, 0);
+        ctx.rotate(90 * Math.PI / 180);
+
+        // هنا بنرسم كأننا في مساحة عرضية (400 عرض و 240 طول)
+        const LOGICAL_WIDTH = 400;
+        const LOGICAL_HEIGHT = 240;
+
+        // نقرأ النص المكتوب في المعاينة وقت الطباعة
+        const name = stName.innerText.trim() || '---';
+        const unified = stUnifiedId.innerText.trim() || '---';
+
+        // إضافة اللوجو للطباعة
+        try {
+            const logo = await loadLogoImage();
+            const maxLogoWidth = 90;
+            const maxLogoHeight = 32;
+
+            const ratio = Math.min(
+                maxLogoWidth / logo.naturalWidth,
+                maxLogoHeight / logo.naturalHeight
+            );
+
+            const logoWidth = logo.naturalWidth * ratio;
+            const logoHeight = logo.naturalHeight * ratio;
+
+            const logoX = 20; 
+            const logoY = LOGICAL_HEIGHT - logoHeight - 15; 
+
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        } catch (error) {
+            console.warn('Logo could not be loaded', error);
         }
 
-        // --- جميع الإحداثيات هنا تعتمد على العرض 400 والطول 240 ---
-
-        const name = stName.value.trim() || '---';
-        const unified = stUnifiedId.value.trim() || '---';
-
-        // طباعة اللوجو فقط عند الطباعة الفعلية (isPrint = true) ومخفي في المعاينة
-        if (isPrint) {
-            try {
-                const logo = await loadLogoImage();
-                const maxLogoWidth = 90;
-                const maxLogoHeight = 32;
-
-                const ratio = Math.min(
-                    maxLogoWidth / logo.naturalWidth,
-                    maxLogoHeight / logo.naturalHeight
-                );
-
-                const logoWidth = logo.naturalWidth * ratio;
-                const logoHeight = logo.naturalHeight * ratio;
-
-                const logoX = 20; 
-                const logoY = LOGICAL_HEIGHT - logoHeight - 15; 
-
-                ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
-            } catch (error) {
-                console.warn('Logo could not be loaded', error);
-            }
-        }
-
-        let nameText = name;
+        // رسم الاسم
         let nameFontSize = 45;
-
-        if (nameText.length > 18) nameFontSize = 38;
-        if (nameText.length > 28) nameFontSize = 32;
-        if (nameText.length > 38) nameFontSize = 26;
+        if (name.length > 18) nameFontSize = 38;
+        if (name.length > 28) nameFontSize = 32;
+        if (name.length > 38) nameFontSize = 26;
 
         drawTextRTL(
             ctx,
-            nameText,
+            name,
             LOGICAL_WIDTH / 2,
             58, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
 
+        // رسم الرقم الموحد
         const unifiedText = `رقم موحد: ${unified}`;
-
         drawTextRTL(
             ctx,
             unifiedText,
@@ -746,34 +701,6 @@
         return canvas.toDataURL('image/png');
     }
 
-    let previewUpdateTimer = null;
-    let previewRenderNumber = 0;
-
-    async function updatePreview() {
-        const renderNumber = ++previewRenderNumber;
-        try {
-            // المعاينة ترسم بالشكل العرضي (isPrint = false)
-            await createThermalSticker(previewCanvas, false);
-            if (renderNumber !== previewRenderNumber) return;
-        } catch (error) {
-            console.error('Preview render error:', error);
-        }
-    }
-
-    function schedulePreviewUpdate() {
-        clearTimeout(previewUpdateTimer);
-        previewUpdateTimer = setTimeout(updatePreview, 80);
-    }
-
-    stName.addEventListener('input', () => {
-        selectedPatient = null;
-        schedulePreviewUpdate();
-    });
-
-    stUnifiedId.addEventListener('input', () => {
-        schedulePreviewUpdate();
-    });
-
     async function printStickers() {
         const printContainer = document.getElementById('print-container');
 
@@ -782,7 +709,7 @@
             if (!proceed) return;
         }
 
-        if (!selectedPatient && stName.value.trim() === 'اسم المريض') {
+        if (!selectedPatient && stName.innerText.trim() === 'اسم المريض') {
             const proceed = confirm('⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟');
             if (!proceed) return;
         }
@@ -798,16 +725,14 @@
 
         try {
             printContainer.innerHTML = '';
-            // إنشاء صورة الطباعة بالطول وملفوفة 90 درجة مع اللوجو (isPrint = true)
-            const imageData = await createThermalSticker(null, true);
+            
+            // استخراج صورة الطباعة اللي اتلفت 90 درجة
+            const imageData = await createThermalSticker();
 
             for (let i = 0; i < copies; i++) {
                 const img = document.createElement('img');
                 img.className = 'thermal-print-image';
                 img.src = imageData;
-                // مقاسات الصورة المطابقة لورقة الطابعة
-                img.width = PRINT_CANVAS_WIDTH;
-                img.height = PRINT_CANVAS_HEIGHT;
                 printContainer.appendChild(img);
             }
 
@@ -827,7 +752,7 @@
         }
     }
 
-    updatePreview();
+    // بدء تحميل البيانات فور فتح الصفحة
     loadData();
 </script>
 
