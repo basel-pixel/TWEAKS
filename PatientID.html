@@ -1803,71 +1803,56 @@
 
     async function createThermalSticker() {
 
-        /* -----------------------------------------------------
-           إنشاء Canvas
-        ----------------------------------------------------- */
+        /* =====================================================
+           المقاس النهائي الفعلي للستيكر كما هو:
+           50 × 30 mm = 400 × 240 px تقريباً على 203 DPI
 
-        const canvas =
-            document.createElement(
-                'canvas'
-            );
+           لكن التصميم نفسه سنرسمه Portrait على مساحة منطقية:
+           30 × 50 mm = 240 × 400 px
+           ثم نلفه 90 درجة داخل نفس صورة الطباعة 400 × 240.
+        ===================================================== */
 
-
-        canvas.width =
-            PRINT_WIDTH;
-
-
-        canvas.height =
-            PRINT_HEIGHT;
-
+        const PORTRAIT_WIDTH = PRINT_HEIGHT;   // 240 px
+        const PORTRAIT_HEIGHT = PRINT_WIDTH;   // 400 px
 
         /* -----------------------------------------------------
-           RTL للـ Canvas بالكامل
+           Canvas داخلي لتصميم الـ Portrait
         ----------------------------------------------------- */
 
-        canvas.dir =
+        const portraitCanvas =
+            document.createElement('canvas');
+
+        portraitCanvas.width =
+            PORTRAIT_WIDTH;
+
+        portraitCanvas.height =
+            PORTRAIT_HEIGHT;
+
+        portraitCanvas.dir =
             'rtl';
 
-
-
-        /* -----------------------------------------------------
-           Context
-        ----------------------------------------------------- */
-
-        const ctx =
-            canvas.getContext(
+        const pctx =
+            portraitCanvas.getContext(
                 '2d',
                 {
                     alpha: false
                 }
             );
 
-
-
-        /* -----------------------------------------------------
-           RTL للـ Context
-        ----------------------------------------------------- */
-
-        ctx.direction =
+        pctx.direction =
             'rtl';
 
+        /* خلفية بيضاء */
 
-
-        /* -----------------------------------------------------
-           خلفية بيضاء خالصة
-        ----------------------------------------------------- */
-
-        ctx.fillStyle =
+        pctx.fillStyle =
             '#ffffff';
 
-
-        ctx.fillRect(
+        pctx.fillRect(
             0,
             0,
-            PRINT_WIDTH,
-            PRINT_HEIGHT
+            PORTRAIT_WIDTH,
+            PORTRAIT_HEIGHT
         );
-
 
 
         /* -----------------------------------------------------
@@ -1879,91 +1864,64 @@
                 .trim() ||
             '---';
 
-
         const unified =
             stUnifiedId.innerText
                 .trim() ||
             '---';
 
 
-
         /* =====================================================
-           اللوجو الحراري
+           اللوجو الحراري - أصغر شوية ليناسب الـ Portrait
         ===================================================== */
-
 
         try {
 
             const logo =
                 await loadLogoImage();
 
-
-            /*
-               أقصى مساحة للوجو
-            */
-
             const maxLogoWidth =
-                280;
-
+                190;
 
             const maxLogoHeight =
-                60;
-
+                58;
 
             const ratio =
                 Math.min(
-
                     maxLogoWidth /
                         logo.naturalWidth,
-
                     maxLogoHeight /
                         logo.naturalHeight
                 );
-
 
             const logoWidth =
                 logo.naturalWidth *
                 ratio;
 
-
             const logoHeight =
                 logo.naturalHeight *
                 ratio;
 
-
             const logoX =
                 (
-                    PRINT_WIDTH -
+                    PORTRAIT_WIDTH -
                     logoWidth
                 ) / 2;
 
-
             const logoY =
-                8;
+                14;
 
-
-
-            /*
-               إيقاف تنعيم الصورة
-               للحفاظ على حدة الطباعة
-            */
-
-            ctx.imageSmoothingEnabled =
+            pctx.imageSmoothingEnabled =
                 false;
 
-
-            ctx.drawImage(
+            pctx.drawImage(
                 logo,
-
                 logoX,
                 logoY,
-
                 logoWidth,
                 logoHeight
             );
 
         }
-
 
         catch (error) {
 
@@ -1974,39 +1932,46 @@
         }
 
 
-
         /* =====================================================
-           اسم المريض - سطرين وبخط أكبر
+           اسم المريض - يتقسم تلقائياً على سطرين بشكل متوازن
         ===================================================== */
-
 
         const nameText =
             name.trim();
 
-
         const words =
             nameText.split(/\s+/);
-
 
         let line1 =
             nameText;
 
-
         let line2 =
             '';
 
+        /*
+           لو الاسم كلمتين: كل كلمة في سطر.
+           لو أكثر: نختار أفضل نقطة تقسيم حسب العرض الحقيقي.
+        */
 
-        if (
-            words.length > 2
-        ) {
+        if (words.length === 2) {
+
+            line1 =
+                words[0];
+
+            line2 =
+                words[1];
+        }
+
+        else if (words.length > 2) {
 
             let bestSplit =
                 1;
 
-
             let smallestDifference =
                 Infinity;
 
+            pctx.font =
+                `900 34px Tahoma, Arial, sans-serif`;
 
             for (
                 let i = 1;
@@ -2019,35 +1984,26 @@
                         .slice(0, i)
                         .join(' ');
 
-
                 const secondPart =
                     words
                         .slice(i)
                         .join(' ');
 
-
-                ctx.font =
-                    `900 37px Tahoma, Arial, sans-serif`;
-
-
                 const width1 =
-                    ctx.measureText(
+                    pctx.measureText(
                         firstPart
                     ).width;
 
-
                 const width2 =
-                    ctx.measureText(
+                    pctx.measureText(
                         secondPart
                     ).width;
-
 
                 const difference =
                     Math.abs(
                         width1 -
                         width2
                     );
-
 
                 if (
                     difference <
@@ -2057,12 +2013,10 @@
                     smallestDifference =
                         difference;
 
-
                     bestSplit =
                         i;
                 }
             }
-
 
             line1 =
                 words
@@ -2071,7 +2025,6 @@
                         bestSplit
                     )
                     .join(' ');
-
 
             line2 =
                 words
@@ -2082,107 +2035,150 @@
         }
 
 
+        /* -----------------------------------------------------
+           تكبير الاسم قدر الإمكان بدون لمس الحواف
+        ----------------------------------------------------- */
+
         let nameFontSize =
-            37;
+            35;
 
+        const nameMaxWidth =
+            210;
 
-        ctx.font =
+        pctx.font =
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
-
 
         while (
             (
-                ctx.measureText(
+                pctx.measureText(
                     line1
-                ).width > 350
+                ).width > nameMaxWidth
                 ||
                 (
                     line2 &&
-                    ctx.measureText(
+                    pctx.measureText(
                         line2
-                    ).width > 350
+                    ).width > nameMaxWidth
                 )
             )
             &&
-            nameFontSize > 29
+            nameFontSize > 27
         ) {
 
             nameFontSize--;
 
-
-            ctx.font =
+            pctx.font =
                 `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
         }
 
 
+        /* السطر الأول */
+
         drawTextRTL(
-
-            ctx,
-
+            pctx,
             line1,
-
-            PRINT_WIDTH / 2,
-
-            105,
-
+            PORTRAIT_WIDTH / 2,
+            150,
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
-
-            350
+            nameMaxWidth
         );
 
 
-        if (
-            line2
-        ) {
+        /* السطر الثاني */
+
+        if (line2) {
 
             drawTextRTL(
-
-                ctx,
-
+                pctx,
                 line2,
-
-                PRINT_WIDTH / 2,
-
-                145,
-
+                PORTRAIT_WIDTH / 2,
+                198,
                 `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
-
-                350
+                nameMaxWidth
             );
         }
 
 
-
         /* =====================================================
-           الرقم الموحد
+           الرقم الموحد - أصغر شوية وبعيد عن الحواف
         ===================================================== */
-
 
         const unifiedText =
             `رقم موحد: ${unified}`;
 
-
         drawTextRTL(
-
-            ctx,
-
+            pctx,
             unifiedText,
-
-            PRINT_WIDTH / 2,
-
-            195,
-
-            `900 26px Tahoma, Arial, sans-serif`,
-
-            340
+            PORTRAIT_WIDTH / 2,
+            310,
+            `900 24px Tahoma, Arial, sans-serif`,
+            210
         );
 
 
-
         /* =====================================================
-           Canvas → PNG
+           تحويل التصميم الـ Portrait إلى نفس المقاس الفعلي
+           400 × 240 مع تدويره 90 درجة.
         ===================================================== */
 
+        const canvas =
+            document.createElement('canvas');
+
+        canvas.width =
+            PRINT_WIDTH;
+
+        canvas.height =
+            PRINT_HEIGHT;
+
+        canvas.dir =
+            'rtl';
+
+        const ctx =
+            canvas.getContext(
+                '2d',
+                {
+                    alpha: false
+                }
+            );
+
+        ctx.fillStyle =
+            '#ffffff';
+
+        ctx.fillRect(
+            0,
+            0,
+            PRINT_WIDTH,
+            PRINT_HEIGHT
+        );
+
+        ctx.imageSmoothingEnabled =
+            false;
+
+        /*
+           تدوير مع عقارب الساعة 90 درجة.
+           لو احتجت الاتجاه العكسي، غيّر Math.PI / 2 إلى -Math.PI / 2
+           مع تغيير translate إلى (0, PRINT_HEIGHT).
+        */
+
+        ctx.translate(
+            PRINT_WIDTH,
+            0
+        );
+
+        ctx.rotate(
+            Math.PI / 2
+        );
+
+        ctx.drawImage(
+            portraitCanvas,
+            0,
+            0
+        );
+
+
+        /* =====================================================
+           Canvas النهائي → PNG
+        ===================================================== */
 
         return canvas.toDataURL(
             'image/png'
