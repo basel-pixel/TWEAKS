@@ -1933,136 +1933,31 @@
 
 
         /* =====================================================
-           اسم المريض - يتقسم تلقائياً على سطرين بشكل متوازن
+           اسم المريض - سطر واحد فقط
         ===================================================== */
 
         const nameText =
             name.trim();
 
-        const words =
-            nameText.split(/\s+/);
-
-        let line1 =
-            nameText;
-
-        let line2 =
-            '';
-
         /*
-           لو الاسم كلمتين: كل كلمة في سطر.
-           لو أكثر: نختار أفضل نقطة تقسيم حسب العرض الحقيقي.
+           نحاول نخلي الاسم كبير قدر الإمكان،
+           ولو الاسم طويل نصغر الخط تدريجياً
+           بدون تقسيمه على سطرين.
         */
 
-        if (words.length === 2) {
-
-            line1 =
-                words[0];
-
-            line2 =
-                words[1];
-        }
-
-        else if (words.length > 2) {
-
-            let bestSplit =
-                1;
-
-            let smallestDifference =
-                Infinity;
-
-            pctx.font =
-                `900 34px Tahoma, Arial, sans-serif`;
-
-            for (
-                let i = 1;
-                i < words.length;
-                i++
-            ) {
-
-                const firstPart =
-                    words
-                        .slice(0, i)
-                        .join(' ');
-
-                const secondPart =
-                    words
-                        .slice(i)
-                        .join(' ');
-
-                const width1 =
-                    pctx.measureText(
-                        firstPart
-                    ).width;
-
-                const width2 =
-                    pctx.measureText(
-                        secondPart
-                    ).width;
-
-                const difference =
-                    Math.abs(
-                        width1 -
-                        width2
-                    );
-
-                if (
-                    difference <
-                    smallestDifference
-                ) {
-
-                    smallestDifference =
-                        difference;
-
-                    bestSplit =
-                        i;
-                }
-            }
-
-            line1 =
-                words
-                    .slice(
-                        0,
-                        bestSplit
-                    )
-                    .join(' ');
-
-            line2 =
-                words
-                    .slice(
-                        bestSplit
-                    )
-                    .join(' ');
-        }
-
-
-        /* -----------------------------------------------------
-           تكبير الاسم قدر الإمكان بدون لمس الحواف
-        ----------------------------------------------------- */
-
         let nameFontSize =
-            35;
+            34;
 
         const nameMaxWidth =
-            210;
+            218;
 
         pctx.font =
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
 
         while (
-            (
-                pctx.measureText(
-                    line1
-                ).width > nameMaxWidth
-                ||
-                (
-                    line2 &&
-                    pctx.measureText(
-                        line2
-                    ).width > nameMaxWidth
-                )
-            )
+            pctx.measureText(nameText).width > nameMaxWidth
             &&
-            nameFontSize > 27
+            nameFontSize > 20
         ) {
 
             nameFontSize--;
@@ -2071,32 +1966,14 @@
                 `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
         }
 
-
-        /* السطر الأول */
-
         drawTextRTL(
             pctx,
-            line1,
+            nameText,
             PORTRAIT_WIDTH / 2,
-            150,
+            175,
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             nameMaxWidth
         );
-
-
-        /* السطر الثاني */
-
-        if (line2) {
-
-            drawTextRTL(
-                pctx,
-                line2,
-                PORTRAIT_WIDTH / 2,
-                198,
-                `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
-                nameMaxWidth
-            );
-        }
 
 
         /* =====================================================
@@ -2110,7 +1987,7 @@
             pctx,
             unifiedText,
             PORTRAIT_WIDTH / 2,
-            310,
+            285,
             `900 24px Tahoma, Arial, sans-serif`,
             210
         );
