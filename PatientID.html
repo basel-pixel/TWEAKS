@@ -10,11 +10,6 @@
 
     <style>
         :root {
-            /* XP-233B
-               203 DPI
-               50mm × 30mm
-               ≈ 400 × 240 dots
-            */
             --label-width: 50mm;
             --label-height: 30mm;
         }
@@ -34,10 +29,6 @@
             flex-direction: column;
             align-items: center;
         }
-
-        /* =========================================================
-           واجهة البرنامج
-        ========================================================= */
 
         .app-container {
             width: 100%;
@@ -99,23 +90,17 @@
 
         .suggestions-box {
             display: none;
-
             position: absolute;
             top: 100%;
             right: 0;
             left: 0;
-
             z-index: 1000;
-
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-
             max-height: 200px;
             overflow-y: auto;
-
             margin-top: 5px;
         }
 
@@ -125,12 +110,9 @@
 
         .suggestion-item {
             padding: 10px 12px;
-
             font-size: 14px;
             font-weight: 600;
-
             cursor: pointer;
-
             border-bottom: 1px solid #f1f5f9;
         }
 
@@ -150,40 +132,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
-
             gap: 8px;
             width: 100%;
-
             margin-bottom: 15px;
         }
 
         #loading-msg {
             text-align: center;
-
             font-size: 13px;
             font-weight: bold;
-
             color: #2563eb;
-
             min-height: 20px;
             flex: 1;
         }
 
         .btn-refresh {
             flex-shrink: 0;
-
             background: #eff6ff;
             color: #2563eb;
-
             border: 1px solid #bfdbfe;
             border-radius: 6px;
-
             padding: 6px 10px;
-
             font-family: inherit;
             font-size: 12px;
             font-weight: 700;
-
             cursor: pointer;
         }
 
@@ -198,18 +170,13 @@
 
         .copies-box {
             width: 100%;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             gap: 10px;
-
             margin-bottom: 20px;
-
             background: #f8fafc;
             padding: 10px;
-
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
@@ -222,18 +189,13 @@
 
         .copies-box input {
             width: 70px;
-
             padding: 8px;
-
             text-align: center;
-
             font-size: 16px;
             font-weight: bold;
             font-family: inherit;
-
             border: 2px solid #cbd5e1;
             border-radius: 6px;
-
             outline: none;
         }
 
@@ -245,16 +207,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-
             margin-bottom: 20px;
         }
 
         .preview-title {
             font-size: 13px;
             color: #64748b;
-
             margin-bottom: 10px;
-
             font-weight: bold;
             text-align: center;
         }
@@ -262,21 +221,14 @@
         .btn-print {
             background: #10b981;
             color: #fff;
-
             border: none;
-
             width: 100%;
-
             padding: 15px;
-
             font-family: inherit;
             font-size: 18px;
             font-weight: bold;
-
             border-radius: 8px;
-
             cursor: pointer;
-
             box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
         }
 
@@ -284,34 +236,25 @@
             transform: scale(0.97);
         }
 
-        /* =========================================================
-           الاستيكر الخاص بالمعاينة (بدون صورة اللوجو)
-        ========================================================= */
-
+        /* الاستيكر الخاص بالمعاينة (بدون صورة اللوجو) */
         .sticker {
             width: var(--label-width);
             height: var(--label-height);
-
             background: #ffffff;
             border: 1px dashed #000000;
             box-sizing: border-box;
-
             padding: 0;
             position: relative;
-
             overflow: hidden;
             color: #000000 !important;
-
             font-family: Tahoma, Arial, sans-serif;
             -webkit-font-smoothing: none;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: geometricPrecision;
-
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
 
-        /* معاينة الاسم */
         .preview-st-name {
             position: absolute;
             top: 6mm;
@@ -328,7 +271,6 @@
             padding: 0 2mm;
         }
 
-        /* معاينة الرقم الموحد */
         .preview-st-unified {
             position: absolute;
             top: 15mm;
@@ -347,10 +289,6 @@
             font-size: 11px;
         }
 
-        /* =========================================================
-           منطقة الطباعة
-        ========================================================= */
-
         #print-container {
             display: none;
         }
@@ -366,18 +304,13 @@
             image-rendering: auto;
         }
 
-        /* =========================================================
-           PRINT
-        ========================================================= */
-
         @media print {
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
-            html,
-            body {
+            html, body {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 50mm !important;
@@ -385,14 +318,8 @@
                 color: #000000 !important;
             }
 
-            body {
-                display: block !important;
-            }
-
-            .no-print,
-            .app-container {
-                display: none !important;
-            }
+            body { display: block !important; }
+            .no-print, .app-container { display: none !important; }
 
             #print-container {
                 display: block !important;
@@ -429,139 +356,53 @@
 
 <body>
 
-    <!-- =========================================================
-         واجهة البرنامج
-    ========================================================= -->
-
     <div class="app-container no-print">
-
         <div class="hospital-logo">
-            <img
-                src="MEpics/Picture1.png"
-                alt="مستشفى صيدناوي"
-                onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
-            >
+            <img src="MEpics/Picture1.png" alt="مستشفى صيدناوي" onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';">
         </div>
 
         <h2>طباعة استيكر المريض</h2>
 
         <div class="status-row">
-
-            <div id="loading-msg">
-                جاري تحميل البيانات من الشيت... ⏳
-            </div>
-
-            <button
-                type="button"
-                id="refresh-btn"
-                class="btn-refresh"
-                onclick="loadData()"
-                title="تحديث البيانات من الشيت"
-            >
-                🔄 تحديث
-            </button>
-
+            <div id="loading-msg">جاري تحميل البيانات من الشيت... ⏳</div>
+            <button type="button" id="refresh-btn" class="btn-refresh" onclick="loadData()" title="تحديث البيانات من الشيت">🔄 تحديث</button>
         </div>
 
         <div class="search-box">
-
-            <input
-                type="text"
-                id="search-input"
-                class="search-input"
-                placeholder="اكتب اسم المريض للبحث..."
-                autocomplete="off"
-            >
-
-            <div
-                id="suggestions"
-                class="suggestions-box"
-            ></div>
-
+            <input type="text" id="search-input" class="search-input" placeholder="اكتب اسم المريض للبحث..." autocomplete="off">
+            <div id="suggestions" class="suggestions-box"></div>
         </div>
 
         <div class="copies-box">
-
-            <label for="copies-count">
-                عدد النسخ (الستيكرات):
-            </label>
-
-            <input
-                type="number"
-                id="copies-count"
-                min="1"
-                max="50"
-                value="1"
-            >
-
+            <label for="copies-count">عدد النسخ (الستيكرات):</label>
+            <input type="number" id="copies-count" min="1" max="50" value="1">
         </div>
 
         <div class="preview-section">
-
-            <div class="preview-title">
-                معاينة الاستيكر
-                (يمكن تعديل النص يدوياً قبل الطباعة)
-            </div>
-
-            <!-- حاوية المعاينة (بدون صورة اللوجو) -->
+            <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
+            
             <div class="sticker" id="preview-sticker">
-                <div
-                    class="preview-st-name"
-                    id="st-name"
-                    contenteditable="true"
-                >
-                    اسم المريض
-                </div>
-
+                <div class="preview-st-name" id="st-name" contenteditable="true">اسم المريض</div>
                 <div class="preview-st-unified">
                     <span class="preview-st-label">رقم موحد:</span>
-                    <span
-                        id="st-unified-id"
-                        contenteditable="true"
-                    >---</span>
+                    <span id="st-unified-id" contenteditable="true">---</span>
                 </div>
             </div>
-
         </div>
 
-        <button
-            class="btn-print"
-            onclick="printStickers()"
-        >
-            🖨️ طباعة الاستيكرات
-        </button>
-
+        <button class="btn-print" onclick="printStickers()">🖨️ طباعة الاستيكرات</button>
     </div>
-
-
-    <!-- =========================================================
-         حاوية الطباعة
-    ========================================================= -->
 
     <div id="print-container"></div>
 
-
 <script>
-
-    /* =========================================================
-       إعدادات الطباعة الحرارية
-    ========================================================= */
-
     const PRINT_DPI = 203;
     const PRINT_WIDTH = 400;
     const PRINT_HEIGHT = 240;
 
-
-    /* =========================================================
-       رابط الشيت
-    ========================================================= */
-
-    const CSV_URL =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
-
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
     let patientsList = [];
-
     const searchInput = document.getElementById('search-input');
     const suggestionsBox = document.getElementById('suggestions');
     const loadingMsg = document.getElementById('loading-msg');
@@ -570,15 +411,8 @@
     const stName = document.getElementById('st-name');
     const stUnifiedId = document.getElementById('st-unified-id');
 
-
-    /* =========================================================
-       توحيد البحث العربي
-    ========================================================= */
-
     function normalizeArabic(text) {
-        return String(text || '')
-            .trim()
-            .toLowerCase()
+        return String(text || '').trim().toLowerCase()
             .replace(/[\u064B-\u065F\u0670]/g, '')
             .replace(/[أإآٱ]/g, 'ا')
             .replace(/ى/g, 'ي')
@@ -586,11 +420,6 @@
             .replace(/[ؤئ]/g, 'ء')
             .replace(/\s+/g, ' ');
     }
-
-
-    /* =========================================================
-       قراءة CSV
-    ========================================================= */
 
     function parseCSVLine(text) {
         let result = [];
@@ -617,13 +446,7 @@
         return result;
     }
 
-
     let dataStatus = 'loading';
-
-
-    /* =========================================================
-       تحميل البيانات
-    ========================================================= */
 
     async function loadData() {
         dataStatus = 'loading';
@@ -633,13 +456,7 @@
         loadingMsg.style.color = '#2563eb';
 
         try {
-            const response = await fetch(
-                CSV_URL +
-                (CSV_URL.includes('?') ? '&' : '?') +
-                'cachebust=' +
-                Date.now()
-            );
-
+            const response = await fetch(CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
             if (!response.ok) throw new Error("Error fetching CSV");
 
             const csvText = await response.text();
@@ -658,13 +475,12 @@
             const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
 
             patientsList = [];
-
             for (let i = 1; i < lines.length; i++) {
-                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                const cols = parseCSVLine(lines[i]);
                 if (colName !== -1 && cols[colName]) {
                     patientsList.push({
-                        name: cols[colName] || '',
-                        unifiedId: colUnified !== -1 ? cols[colUnified] : ''
+                        name: cols[colName].replace(/^"|"$/g, '').trim() || '',
+                        unifiedId: (colUnified !== -1 && cols[colUnified]) ? cols[colUnified].replace(/^"|"$/g, '').trim() : ''
                     });
                 }
             }
@@ -687,15 +503,9 @@
         }
     }
 
-
-    /* =========================================================
-       البحث
-    ========================================================= */
-
     let currentMatches = [];
     let activeIndex = -1;
     let selectedPatient = null;
-
 
     function renderActiveHighlight() {
         const items = suggestionsBox.querySelectorAll('.suggestion-item[data-idx]');
@@ -706,7 +516,6 @@
             items[activeIndex].scrollIntoView({ block: 'nearest' });
         }
     }
-
 
     searchInput.addEventListener('input', (e) => {
         const query = normalizeArabic(e.target.value);
@@ -746,7 +555,6 @@
         suggestionsBox.classList.add('open');
     });
 
-
     searchInput.addEventListener('keydown', (e) => {
         if (!suggestionsBox.classList.contains('open') || currentMatches.length === 0) return;
 
@@ -768,15 +576,9 @@
         }
     });
 
-
     searchInput.addEventListener('blur', () =>
         setTimeout(() => suggestionsBox.classList.remove('open'), 150)
     );
-
-
-    /* =========================================================
-       تعبئة الاستيكر
-    ========================================================= */
 
     function fillSticker(patient) {
         selectedPatient = patient;
@@ -785,11 +587,6 @@
         stName.innerText = patient.name || "---";
         stUnifiedId.innerText = patient.unifiedId || "---";
     }
-
-
-    /* =========================================================
-       تحميل صورة اللوجو (للطباعة الفعلية فقط)
-    ========================================================= */
 
     function loadLogoImage() {
         return new Promise((resolve, reject) => {
@@ -805,11 +602,6 @@
         });
     }
 
-
-    /* =========================================================
-       رسم النص العربي على Canvas
-    ========================================================= */
-
     function drawTextRTL(ctx, text, x, y, font, maxWidth) {
         ctx.save();
         ctx.direction = 'rtl';
@@ -824,11 +616,6 @@
         ctx.restore();
     }
 
-
-    /* =========================================================
-       إنشاء Bitmap واحد للاستكر (مع اللوجو في الطباعة)
-    ========================================================= */
-
     async function createThermalSticker() {
         const canvas = document.createElement('canvas');
         canvas.width = PRINT_WIDTH;
@@ -836,19 +623,14 @@
 
         const ctx = canvas.getContext('2d', { alpha: false });
 
-        /* خلفية بيضاء */
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
 
         const name = stName.innerText.trim() || '---';
         const unified = stUnifiedId.innerText.trim() || '---';
 
-        /* =====================================================
-           اللوجو (يطبع في أسفل الشمال أثناء الطباعة الفعلية فقط)
-        ===================================================== */
         try {
             const logo = await loadLogoImage();
-
             const maxLogoWidth = 90;
             const maxLogoHeight = 32;
 
@@ -869,10 +651,6 @@
             console.warn('Logo could not be loaded', error);
         }
 
-
-        /* =====================================================
-           اسم المريض
-        ===================================================== */
         let nameText = name;
         let nameFontSize = 45;
 
@@ -889,10 +667,6 @@
             380
         );
 
-
-        /* =====================================================
-           الرقم الموحد
-        ===================================================== */
         const unifiedText = `رقم موحد: ${unified}`;
 
         drawTextRTL(
@@ -906,11 +680,6 @@
 
         return canvas.toDataURL('image/png');
     }
-
-
-    /* =========================================================
-       الطباعة
-    ========================================================= */
 
     async function printStickers() {
         const printContainer = document.getElementById('print-container');
@@ -964,7 +733,6 @@
     }
 
     loadData();
-
 </script>
 
 </body>
