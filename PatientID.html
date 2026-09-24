@@ -1297,7 +1297,7 @@
 
 
         /* =====================================================
-           اللوجو (صغير وفي أسفل الشمال)
+           اللوجو (صغير جداً وفي أسفل الشمال)
         ===================================================== */
 
         try {
@@ -1305,9 +1305,9 @@
             const logo =
                 await loadLogoImage();
 
-            /* مقاس أصغر للوجو (مثلاً عرض في حدود 150 بيكسل) */
-            const maxLogoWidth = 140;
-            const maxLogoHeight = 45;
+            /* تصغير اللوجو أكثر (عرض في حدود 90 بيكسل) */
+            const maxLogoWidth = 90;
+            const maxLogoHeight = 32;
 
             const ratio =
                 Math.min(
@@ -1324,9 +1324,9 @@
             const logoHeight =
                 logo.naturalHeight * ratio;
 
-            /* وضعه في أسفل الشمال: X على اليسار، Y في الأسفل */
-            const logoX = 25; // مسافة بسيطة من حافة الشمال
-            const logoY = PRINT_HEIGHT - logoHeight - 20; // مسافة من الأسفل
+            /* وضعه في أسفل الشمال: X على اليسار، Y في الأسفل تماماً */
+            const logoX = 20; 
+            const logoY = PRINT_HEIGHT - logoHeight - 15; 
 
             ctx.imageSmoothingEnabled = false;
 
@@ -1355,7 +1355,6 @@
 
         let nameText = name;
 
-        /* تم تكبير الخط الأساسي لـ 45، مع تصغيره تدريجياً فقط لو الاسم طويل جداً لكي لا يخرج عن الحواف */
         let nameFontSize = 45;
 
         if (nameText.length > 18) {
@@ -1372,7 +1371,7 @@
             ctx,
             nameText,
             PRINT_WIDTH / 2,
-            90, // رفعناه لفوق شوية عشان يدي مساحة مريحة
+            90, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
@@ -1389,7 +1388,7 @@
             ctx,
             unifiedText,
             PRINT_WIDTH / 2,
-            175, // مكان مناسب في النصف السفلي
+            175, 
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
