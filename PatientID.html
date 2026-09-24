@@ -289,6 +289,52 @@
             font-size: 11px;
         }
 
+
+        /* =========================================================
+           معاينة مطابقة 100% للطباعة
+           نفس Canvas المستخدم في إنشاء الاستيكر المطبوع
+        ========================================================= */
+        .exact-preview-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exact-preview-canvas {
+            display: block;
+            width: 50mm;
+            height: 30mm;
+            background: #ffffff;
+            border: 1px dashed #000000;
+            box-sizing: content-box;
+        }
+
+        .manual-edit-box {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .manual-edit-box input {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: Tahoma, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        .manual-edit-box input:focus {
+            border-color: #10b981;
+        }
+
         #print-container {
             display: none;
         }
@@ -381,11 +427,29 @@
         <div class="preview-section">
             <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
             
-            <div class="sticker" id="preview-sticker">
-                <div class="preview-st-name" id="st-name" contenteditable="true">اسم المريض</div>
-                <div class="preview-st-unified">
-                    <span class="preview-st-label">رقم موحد:</span>
-                    <span id="st-unified-id" contenteditable="true">---</span>
+            <div class="exact-preview-wrap">
+                <canvas
+                    id="preview-canvas"
+                    class="exact-preview-canvas"
+                    width="400"
+                    height="240"
+                    aria-label="معاينة الاستيكر المطابق للطباعة"
+                ></canvas>
+
+                <div class="manual-edit-box">
+                    <input
+                        type="text"
+                        id="st-name"
+                        value="اسم المريض"
+                        aria-label="اسم المريض"
+                    >
+
+                    <input
+                        type="text"
+                        id="st-unified-id"
+                        value="---"
+                        aria-label="الرقم الموحد"
+                    >
                 </div>
             </div>
         </div>
@@ -410,6 +474,7 @@
     const copiesCount = document.getElementById('copies-count');
     const stName = document.getElementById('st-name');
     const stUnifiedId = document.getElementById('st-unified-id');
+    const previewCanvas = document.getElementById('preview-canvas');
 
     function normalizeArabic(text) {
         return String(text || '').trim().toLowerCase()
@@ -642,8 +707,9 @@
 
                 if (sameNamePatients.length === 1) {
                     selectedPatient = sameNamePatients[0];
-                    stName.innerText = selectedPatient.name || '---';
-                    stUnifiedId.innerText = selectedPatient.unifiedId || '---';
+                    stName.value = selectedPatient.name || '---';
+                    stUnifiedId.value = selectedPatient.unifiedId || '---';
+                    updatePreview();
                 }
             }
 
@@ -786,8 +852,9 @@
         selectedPatient = patient;
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
-        stName.innerText = patient.name || "---";
-        stUnifiedId.innerText = patient.unifiedId || "---";
+        stName.value = patient.name || "---";
+        stUnifiedId.value = patient.unifiedId || "---";
+        updatePreview();
     }
 
     function loadLogoImage() {
@@ -818,8 +885,8 @@
         ctx.restore();
     }
 
-    async function createThermalSticker() {
-        const canvas = document.createElement('canvas');
+    async function createThermalSticker(targetCanvas = null) {
+        const canvas = targetCanvas || document.createElement('canvas');
         canvas.width = PRINT_WIDTH;
         canvas.height = PRINT_HEIGHT;
 
@@ -828,8 +895,8 @@
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
 
-        const name = stName.innerText.trim() || '---';
-        const unified = stUnifiedId.innerText.trim() || '---';
+        const name = stName.value.trim() || '---';
+        const unified = stUnifiedId.value.trim() || '---';
 
         try {
             const logo = await loadLogoImage();
@@ -883,6 +950,42 @@
         return canvas.toDataURL('image/png');
     }
 
+
+    /* =========================================================
+       تحديث المعاينة بنفس دالة الرسم المستخدمة للطباعة
+       لذلك ما يظهر هنا هو نفسه تقريباً ما سيصل للطابعة.
+    ========================================================= */
+    let previewUpdateTimer = null;
+    let previewRenderNumber = 0;
+
+    async function updatePreview() {
+        const renderNumber = ++previewRenderNumber;
+
+        try {
+            await createThermalSticker(previewCanvas);
+
+            // تجاهل أي رسم قديم لو حصل تحديث أسرع بعده
+            if (renderNumber !== previewRenderNumber) return;
+        } catch (error) {
+            console.error('Preview render error:', error);
+        }
+    }
+
+    function schedulePreviewUpdate() {
+        clearTimeout(previewUpdateTimer);
+        previewUpdateTimer = setTimeout(updatePreview, 80);
+    }
+
+    stName.addEventListener('input', () => {
+        selectedPatient = null;
+        schedulePreviewUpdate();
+    });
+
+    stUnifiedId.addEventListener('input', () => {
+        schedulePreviewUpdate();
+    });
+
+
     async function printStickers() {
         const printContainer = document.getElementById('print-container');
 
@@ -891,7 +994,7 @@
             if (!proceed) return;
         }
 
-        if (!selectedPatient && stName.innerText.trim() === 'اسم المريض') {
+        if (!selectedPatient && stName.value.trim() === 'اسم المريض') {
             const proceed = confirm('⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟');
             if (!proceed) return;
         }
@@ -934,6 +1037,7 @@
         }
     }
 
+    updatePreview();
     loadData();
 </script>
 
