@@ -371,7 +371,7 @@
             <div class="preview-title">معاينة الاستيكر (يمكن تعديل النص يدوياً قبل الطباعة)</div>
             
             <div class="exact-preview-wrap">
-                <!-- المعاينة بالعرض لسهولة القراءة -->
+                <!-- المعاينة بالعرض لسهولة القراءة (بدون لوجو) -->
                 <canvas
                     id="preview-canvas"
                     class="exact-preview-canvas"
@@ -465,7 +465,7 @@
     let dataStatus = 'loading';
 
     /* =========================================================
-       تحميل البيانات (النسخة الأصلية المستقرة)
+       تحميل البيانات (باستخدام الرابط الصافي والمباشر)
     ========================================================= */
     async function loadData() {
         dataStatus = 'loading';
@@ -475,12 +475,7 @@
         loadingMsg.style.color = '#2563eb';
 
         try {
-            const response = await fetch(
-                CSV_URL +
-                (CSV_URL.includes('?') ? '&' : '?') +
-                'cachebust=' +
-                Date.now()
-            );
+            const response = await fetch(CSV_URL);
 
             if (!response.ok) {
                 throw new Error("Error fetching CSV");
@@ -662,8 +657,8 @@
 
     /* 
        دالة الرسم:
-       - isPrint = false (للمعاينة): ترسم بالعرض 400x240
-       - isPrint = true (للطباعة): ترسم بالطول 240x400 وتلف الرسمة 90 درجة
+       - isPrint = false (للمعاينة): ترسم بالعرض 400x240 (بدون لوجو)
+       - isPrint = true (للطباعة): ترسم بالطول 240x400 وتلف الرسمة 90 درجة (مع اللوجو)
     */
     async function createThermalSticker(targetCanvas = null, isPrint = false) {
         const canvas = targetCanvas || document.createElement('canvas');
@@ -694,29 +689,29 @@
         const name = stName.value.trim() || '---';
         const unified = stUnifiedId.value.trim() || '---';
 
-        try {
-            const logo = await loadLogoImage();
-            const maxLogoWidth = 90;
-            const maxLogoHeight = 32;
+        // طباعة اللوجو فقط عند الطباعة الفعلية (isPrint = true) ومخفي في المعاينة
+        if (isPrint) {
+            try {
+                const logo = await loadLogoImage();
+                const maxLogoWidth = 90;
+                const maxLogoHeight = 32;
 
-            const ratio = Math.min(
-                maxLogoWidth / logo.naturalWidth,
-                maxLogoHeight / logo.naturalHeight
-            );
+                const ratio = Math.min(
+                    maxLogoWidth / logo.naturalWidth,
+                    maxLogoHeight / logo.naturalHeight
+                );
 
-            const logoWidth = logo.naturalWidth * ratio;
-            const logoHeight = logo.naturalHeight * ratio;
+                const logoWidth = logo.naturalWidth * ratio;
+                const logoHeight = logo.naturalHeight * ratio;
 
-            const logoX = 20; 
-            const logoY = LOGICAL_HEIGHT - logoHeight - 15; 
+                const logoX = 20; 
+                const logoY = LOGICAL_HEIGHT - logoHeight - 15; 
 
-            ctx.imageSmoothingEnabled = false;
-            // طباعة اللوجو فقط لو بنطبع بجد، مفيش لوجو في المعاينة
-            if (isPrint) {
+                ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+            } catch (error) {
+                console.warn('Logo could not be loaded', error);
             }
-        } catch (error) {
-            console.warn('Logo could not be loaded', error);
         }
 
         let nameText = name;
@@ -803,7 +798,7 @@
 
         try {
             printContainer.innerHTML = '';
-            // إنشاء صورة الطباعة بالطول وملفوفة 90 درجة (isPrint = true)
+            // إنشاء صورة الطباعة بالطول وملفوفة 90 درجة مع اللوجو (isPrint = true)
             const imageData = await createThermalSticker(null, true);
 
             for (let i = 0; i < copies; i++) {
