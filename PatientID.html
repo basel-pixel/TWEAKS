@@ -285,7 +285,7 @@
         }
 
         /* =========================================================
-           الاستيكر الخاص بالمعاينة (مضبوط بالمللي ليطابق الـ Canvas تماماً)
+           الاستيكر الخاص بالمعاينة (بدون صورة اللوجو)
         ========================================================= */
 
         .sticker {
@@ -297,7 +297,7 @@
             box-sizing: border-box;
 
             padding: 0;
-            position: relative; /* لتمكين التوزيع الدقيق للعناصر بالـ absolute */
+            position: relative;
 
             overflow: hidden;
             color: #000000 !important;
@@ -311,20 +311,10 @@
             print-color-adjust: exact !important;
         }
 
-        /* معاينة اللوجو (أسفل الشمال) */
-        .preview-st-logo {
-            position: absolute;
-            left: 2.5mm;
-            bottom: 2mm;
-            width: 18mm; /* تصغير اللوجو في المعاينة */
-            height: auto;
-            object-fit: contain;
-        }
-
-        /* معاينة الاسم (مرفوع لفوق وفي سطر واحد) */
+        /* معاينة الاسم */
         .preview-st-name {
             position: absolute;
-            top: 4mm;
+            top: 6mm;
             left: 0;
             right: 0;
             text-align: center;
@@ -341,7 +331,7 @@
         /* معاينة الرقم الموحد */
         .preview-st-unified {
             position: absolute;
-            top: 13.5mm;
+            top: 15mm;
             left: 0;
             right: 0;
             text-align: center;
@@ -513,15 +503,8 @@
                 (يمكن تعديل النص يدوياً قبل الطباعة)
             </div>
 
-            <!-- حاوية المعاينة المطابقة تماماً للطباعة -->
+            <!-- حاوية المعاينة (بدون صورة اللوجو) -->
             <div class="sticker" id="preview-sticker">
-                <img
-                    src="MEpics/Picture1.png"
-                    alt="Logo"
-                    class="preview-st-logo"
-                    onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
-                >
-
                 <div
                     class="preview-st-name"
                     id="st-name"
@@ -805,7 +788,7 @@
 
 
     /* =========================================================
-       تحميل صورة اللوجو
+       تحميل صورة اللوجو (للطباعة الفعلية فقط)
     ========================================================= */
 
     function loadLogoImage() {
@@ -843,7 +826,7 @@
 
 
     /* =========================================================
-       إنشاء Bitmap واحد للاستكر (مرسوم فوق بعضه بنفس إحداثيات المعاينة)
+       إنشاء Bitmap واحد للاستكر (مع اللوجو في الطباعة)
     ========================================================= */
 
     async function createThermalSticker() {
@@ -861,7 +844,7 @@
         const unified = stUnifiedId.innerText.trim() || '---';
 
         /* =====================================================
-           اللوجو (صغير جداً وفي أسفل الشمال - مطابق للمعاينة)
+           اللوجو (يطبع في أسفل الشمال أثناء الطباعة الفعلية فقط)
         ===================================================== */
         try {
             const logo = await loadLogoImage();
@@ -877,7 +860,6 @@
             const logoWidth = logo.naturalWidth * ratio;
             const logoHeight = logo.naturalHeight * ratio;
 
-            /* إحداثيات أسفل الشمال تماماً زي الـ CSS */
             const logoX = 20; 
             const logoY = PRINT_HEIGHT - logoHeight - 15; 
 
@@ -889,7 +871,7 @@
 
 
         /* =====================================================
-           اسم المريض (مرفوع لفوق وفي سطر واحد)
+           اسم المريض
         ===================================================== */
         let nameText = name;
         let nameFontSize = 45;
@@ -898,7 +880,6 @@
         if (nameText.length > 28) nameFontSize = 32;
         if (nameText.length > 38) nameFontSize = 26;
 
-        /* تم رفع الإحداثي الرأسي ليكون في الأعلى (y = 55) لتطابق المعاينة */
         drawTextRTL(
             ctx,
             nameText,
@@ -914,7 +895,6 @@
         ===================================================== */
         const unifiedText = `رقم موحد: ${unified}`;
 
-        /* تم رفعه ليكون تحت الاسم مباشرة (y = 125) لتطابق المعاينة */
         drawTextRTL(
             ctx,
             unifiedText,
