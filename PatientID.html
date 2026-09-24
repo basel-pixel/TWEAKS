@@ -1903,11 +1903,11 @@
             */
 
             const maxLogoWidth =
-                320;
+                280;
 
 
             const maxLogoHeight =
-                72;
+                60;
 
 
             const ratio =
@@ -1976,65 +1976,180 @@
 
 
         /* =====================================================
-           اسم المريض
+           اسم المريض - سطرين وبخط أكبر
         ===================================================== */
 
 
-        let nameText =
-            name;
+        const nameText =
+            name.trim();
+
+
+        const words =
+            nameText.split(/\s+/);
+
+
+        let line1 =
+            nameText;
+
+
+        let line2 =
+            '';
+
+
+        if (
+            words.length > 2
+        ) {
+
+            let bestSplit =
+                1;
+
+
+            let smallestDifference =
+                Infinity;
+
+
+            for (
+                let i = 1;
+                i < words.length;
+                i++
+            ) {
+
+                const firstPart =
+                    words
+                        .slice(0, i)
+                        .join(' ');
+
+
+                const secondPart =
+                    words
+                        .slice(i)
+                        .join(' ');
+
+
+                ctx.font =
+                    `900 37px Tahoma, Arial, sans-serif`;
+
+
+                const width1 =
+                    ctx.measureText(
+                        firstPart
+                    ).width;
+
+
+                const width2 =
+                    ctx.measureText(
+                        secondPart
+                    ).width;
+
+
+                const difference =
+                    Math.abs(
+                        width1 -
+                        width2
+                    );
+
+
+                if (
+                    difference <
+                    smallestDifference
+                ) {
+
+                    smallestDifference =
+                        difference;
+
+
+                    bestSplit =
+                        i;
+                }
+            }
+
+
+            line1 =
+                words
+                    .slice(
+                        0,
+                        bestSplit
+                    )
+                    .join(' ');
+
+
+            line2 =
+                words
+                    .slice(
+                        bestSplit
+                    )
+                    .join(' ');
+        }
 
 
         let nameFontSize =
-            38;
+            37;
 
 
-        /*
-           تصغير الخط تلقائياً
-           لو الاسم طويل
-        */
+        ctx.font =
+            `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
 
-        if (
-            nameText.length > 24
+
+        while (
+            (
+                ctx.measureText(
+                    line1
+                ).width > 350
+                ||
+                (
+                    line2 &&
+                    ctx.measureText(
+                        line2
+                    ).width > 350
+                )
+            )
+            &&
+            nameFontSize > 29
         ) {
 
-            nameFontSize =
-                34;
+            nameFontSize--;
+
+
+            ctx.font =
+                `900 ${nameFontSize}px Tahoma, Arial, sans-serif`;
         }
-
-
-        if (
-            nameText.length > 32
-        ) {
-
-            nameFontSize =
-                32;
-        }
-
-
-        if (
-            nameText.length > 40
-        ) {
-
-            nameFontSize =
-                28;
-        }
-
 
 
         drawTextRTL(
 
             ctx,
 
-            nameText,
+            line1,
 
             PRINT_WIDTH / 2,
 
-            125,
+            105,
 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
 
             350
         );
+
+
+        if (
+            line2
+        ) {
+
+            drawTextRTL(
+
+                ctx,
+
+                line2,
+
+                PRINT_WIDTH / 2,
+
+                145,
+
+                `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
+
+                350
+            );
+        }
 
 
 
@@ -2055,9 +2170,9 @@
 
             PRINT_WIDTH / 2,
 
-            190,
+            195,
 
-            `900 27px Tahoma, Arial, sans-serif`,
+            `900 26px Tahoma, Arial, sans-serif`,
 
             340
         );
