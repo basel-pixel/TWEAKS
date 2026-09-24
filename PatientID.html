@@ -285,7 +285,7 @@
         }
 
         /* =========================================================
-           الاستيكر الخاص بالمعاينة
+           الاستيكر الخاص بالمعاينة (مضبوط بالمللي ليطابق الـ Canvas تماماً)
         ========================================================= */
 
         .sticker {
@@ -293,107 +293,68 @@
             height: var(--label-height);
 
             background: #ffffff;
-
             border: 1px dashed #000000;
-
             box-sizing: border-box;
 
-            padding: 2mm;
-
-            display: flex;
-            flex-direction: column;
-
-            justify-content: space-between;
-            align-items: center;
+            padding: 0;
+            position: relative; /* لتمكين التوزيع الدقيق للعناصر بالـ absolute */
 
             overflow: hidden;
-
             color: #000000 !important;
 
             font-family: Tahoma, Arial, sans-serif;
-
             -webkit-font-smoothing: none;
             -moz-osx-font-smoothing: grayscale;
-
             text-rendering: geometricPrecision;
 
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
 
-        .st-logo {
-            height: 9mm;
-
-            width: 100%;
-
-            display: flex;
-
-            justify-content: center;
-            align-items: center;
-
-            margin-bottom: 2px;
-        }
-
-        .st-logo img {
-            max-height: 100%;
-            max-width: 40mm;
-
+        /* معاينة اللوجو (أسفل الشمال) */
+        .preview-st-logo {
+            position: absolute;
+            left: 2.5mm;
+            bottom: 2mm;
+            width: 18mm; /* تصغير اللوجو في المعاينة */
+            height: auto;
             object-fit: contain;
         }
 
-        .st-name {
-            font-family: Tahoma, Arial, sans-serif;
-
-            font-size: 15px;
-
-            font-weight: 900;
-
-            color: #000000 !important;
-
+        /* معاينة الاسم (مرفوع لفوق وفي سطر واحد) */
+        .preview-st-name {
+            position: absolute;
+            top: 4mm;
+            left: 0;
+            right: 0;
             text-align: center;
-
-            width: 100%;
-
-            white-space: normal;
-
-            line-height: 1.2;
-
-            max-height: 35px;
-
-            overflow: hidden;
-
-            padding-bottom: 2px;
-            margin-bottom: 2px;
-
-            -webkit-text-stroke: 0.15px #000000;
-        }
-
-        .st-unified {
             font-family: Tahoma, Arial, sans-serif;
-
-            font-size: 14px;
-
+            font-size: 18px;
             font-weight: 900;
-
             color: #000000 !important;
-
-            text-align: center;
-
-            width: 100%;
-
             white-space: nowrap;
-
-            -webkit-text-stroke: 0.1px #000000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 2mm;
         }
 
-        .st-label {
+        /* معاينة الرقم الموحد */
+        .preview-st-unified {
+            position: absolute;
+            top: 13.5mm;
+            left: 0;
+            right: 0;
+            text-align: center;
             font-family: Tahoma, Arial, sans-serif;
-
-            font-weight: 700;
-
-            font-size: 12px;
-
+            font-size: 13px;
+            font-weight: 900;
             color: #000000 !important;
+            white-space: nowrap;
+        }
+
+        .preview-st-label {
+            font-weight: 700;
+            font-size: 11px;
         }
 
         /* =========================================================
@@ -404,27 +365,14 @@
             display: none;
         }
 
-        /*
-            صورة الـ Bitmap الخاصة بالطباعة
-
-            400 × 240 pixels
-            = 50 × 30 mm
-            على 203 DPI تقريباً
-        */
-
         .thermal-print-image {
             display: block;
-
             width: 50mm !important;
             height: 30mm !important;
-
             margin: 0 !important;
             padding: 0 !important;
-
             border: none !important;
-
             background: #ffffff;
-
             image-rendering: auto;
         }
 
@@ -433,7 +381,6 @@
         ========================================================= */
 
         @media print {
-
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -443,11 +390,8 @@
             body {
                 margin: 0 !important;
                 padding: 0 !important;
-
                 width: 50mm !important;
-
                 background: #ffffff !important;
-
                 color: #000000 !important;
             }
 
@@ -462,9 +406,7 @@
 
             #print-container {
                 display: block !important;
-
                 width: 50mm !important;
-
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -476,18 +418,13 @@
 
             .thermal-print-image {
                 display: block !important;
-
                 width: 50mm !important;
                 height: 30mm !important;
-
                 margin: 0 !important;
                 padding: 0 !important;
-
                 page-break-after: always;
                 break-after: page;
-
                 background: #ffffff !important;
-
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -576,44 +513,30 @@
                 (يمكن تعديل النص يدوياً قبل الطباعة)
             </div>
 
-            <div
-                class="sticker"
-                id="preview-sticker"
-            >
-
-                <div class="st-logo">
-
-                    <img
-                        src="MEpics/Picture1.png"
-                        alt="Logo"
-                        onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
-                    >
-
-                </div>
+            <!-- حاوية المعاينة المطابقة تماماً للطباعة -->
+            <div class="sticker" id="preview-sticker">
+                <img
+                    src="MEpics/Picture1.png"
+                    alt="Logo"
+                    class="preview-st-logo"
+                    onerror="this.onerror=null; this.src='TWEAKS/MEpics/Picture1.png';"
+                >
 
                 <div
-                    class="st-name"
+                    class="preview-st-name"
                     id="st-name"
                     contenteditable="true"
                 >
                     اسم المريض
                 </div>
 
-                <div class="st-unified">
-
-                    <span class="st-label">
-                        رقم موحد:
-                    </span>
-
+                <div class="preview-st-unified">
+                    <span class="preview-st-label">رقم موحد:</span>
                     <span
                         id="st-unified-id"
                         contenteditable="true"
-                    >
-                        ---
-                    </span>
-
+                    >---</span>
                 </div>
-
             </div>
 
         </div>
@@ -642,15 +565,6 @@
     ========================================================= */
 
     const PRINT_DPI = 203;
-
-    /*
-        50mm على 203 DPI
-        = 399.6 ≈ 400 pixels
-
-        30mm على 203 DPI
-        = 239.8 ≈ 240 pixels
-    */
-
     const PRINT_WIDTH = 400;
     const PRINT_HEIGHT = 240;
 
@@ -665,26 +579,13 @@
 
     let patientsList = [];
 
-    const searchInput =
-        document.getElementById('search-input');
-
-    const suggestionsBox =
-        document.getElementById('suggestions');
-
-    const loadingMsg =
-        document.getElementById('loading-msg');
-
-    const refreshBtn =
-        document.getElementById('refresh-btn');
-
-    const copiesCount =
-        document.getElementById('copies-count');
-
-    const stName =
-        document.getElementById('st-name');
-
-    const stUnifiedId =
-        document.getElementById('st-unified-id');
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('suggestions');
+    const loadingMsg = document.getElementById('loading-msg');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const copiesCount = document.getElementById('copies-count');
+    const stName = document.getElementById('st-name');
+    const stUnifiedId = document.getElementById('st-unified-id');
 
 
     /* =========================================================
@@ -692,21 +593,14 @@
     ========================================================= */
 
     function normalizeArabic(text) {
-
         return String(text || '')
             .trim()
             .toLowerCase()
-
             .replace(/[\u064B-\u065F\u0670]/g, '')
-
             .replace(/[أإآٱ]/g, 'ا')
-
             .replace(/ى/g, 'ي')
-
             .replace(/ة/g, 'ه')
-
             .replace(/[ؤئ]/g, 'ء')
-
             .replace(/\s+/g, ' ');
     }
 
@@ -716,54 +610,27 @@
     ========================================================= */
 
     function parseCSVLine(text) {
-
         let result = [];
-
         let current = '';
-
         let inQuotes = false;
 
         for (let i = 0; i < text.length; i++) {
-
             const char = text[i];
-
             if (char === '"') {
-
-                if (
-                    inQuotes &&
-                    text[i + 1] === '"'
-                ) {
-
+                if (inQuotes && text[i + 1] === '"') {
                     current += '"';
-
                     i++;
-
                 } else {
-
                     inQuotes = !inQuotes;
                 }
-
-            }
-
-            else if (
-                char === ',' &&
-                !inQuotes
-            ) {
-
+            } else if (char === ',' && !inQuotes) {
                 result.push(current.trim());
-
                 current = '';
-
-            }
-
-            else {
-
+            } else {
                 current += char;
             }
         }
-
         result.push(current.trim());
-
         return result;
     }
 
@@ -776,20 +643,13 @@
     ========================================================= */
 
     async function loadData() {
-
         dataStatus = 'loading';
-
         refreshBtn.disabled = true;
-
         loadingMsg.style.display = 'block';
-
-        loadingMsg.innerText =
-            'جاري تحميل البيانات من الشيت... ⏳';
-
+        loadingMsg.innerText = 'جاري تحميل البيانات من الشيت... ⏳';
         loadingMsg.style.color = '#2563eb';
 
         try {
-
             const response = await fetch(
                 CSV_URL +
                 (CSV_URL.includes('?') ? '&' : '?') +
@@ -797,133 +657,49 @@
                 Date.now()
             );
 
-            if (!response.ok) {
-                throw new Error("Error fetching CSV");
-            }
+            if (!response.ok) throw new Error("Error fetching CSV");
 
-            const csvText =
-                await response.text();
-
-            const lines =
-                csvText
-                    .split(/\r\n|\n/)
-                    .filter(
-                        l => l.trim() !== ''
-                    );
+            const csvText = await response.text();
+            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
 
             if (lines.length < 2) {
-
-                loadingMsg.innerText =
-                    '⚠️ لا توجد بيانات في الشيت';
-
-                loadingMsg.style.color =
-                    '#dc2626';
-
+                loadingMsg.innerText = '⚠️ لا توجد بيانات في الشيت';
+                loadingMsg.style.color = '#dc2626';
                 dataStatus = 'error';
-
                 refreshBtn.disabled = false;
-
                 return;
             }
 
-
-            const headers =
-                parseCSVLine(lines[0])
-                    .map(
-                        h =>
-                            h
-                                .replace(/^"|"$/g, '')
-                                .trim()
-                    );
-
-
-            const colName =
-                headers.findIndex(
-                    h =>
-                        h.includes('اسم') ||
-                        h.includes('المريض')
-                );
-
-
-            const colUnified =
-                headers.findIndex(
-                    h =>
-                        h.includes('موحد') ||
-                        h.includes('طبي')
-                );
-
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            const colName = headers.findIndex(h => h.includes('اسم') || h.includes('المريض'));
+            const colUnified = headers.findIndex(h => h.includes('موحد') || h.includes('طبي'));
 
             patientsList = [];
 
-
-            for (
-                let i = 1;
-                i < lines.length;
-                i++
-            ) {
-
-                const cols =
-                    parseCSVLine(lines[i])
-                        .map(
-                            c =>
-                                c
-                                    .replace(/^"|"$/g, '')
-                                    .trim()
-                        );
-
-
-                if (
-                    colName !== -1 &&
-                    cols[colName]
-                ) {
-
+            for (let i = 1; i < lines.length; i++) {
+                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                if (colName !== -1 && cols[colName]) {
                     patientsList.push({
-
-                        name:
-                            cols[colName] || '',
-
-                        unifiedId:
-                            colUnified !== -1
-                                ? cols[colUnified]
-                                : ''
-
+                        name: cols[colName] || '',
+                        unifiedId: colUnified !== -1 ? cols[colUnified] : ''
                     });
                 }
             }
 
-
-            loadingMsg.innerText =
-                `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
-
-            loadingMsg.style.color =
-                '#10b981';
-
+            loadingMsg.innerText = `✅ تم سحب ${patientsList.length} مريض جاهزين للطباعة`;
+            loadingMsg.style.color = '#10b981';
             dataStatus = 'ready';
-
             refreshBtn.disabled = false;
 
-
             setTimeout(() => {
-
-                loadingMsg.style.display =
-                    'none';
-
+                loadingMsg.style.display = 'none';
             }, 3000);
 
-        }
-
-        catch (error) {
-
+        } catch (error) {
             console.error(error);
-
-            loadingMsg.innerText =
-                '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
-
-            loadingMsg.style.color =
-                '#dc2626';
-
+            loadingMsg.innerText = '⚠️ حدث خطأ في الاتصال بالشيت (يرجى مراجعة الرابط)';
+            loadingMsg.style.color = '#dc2626';
             dataStatus = 'error';
-
             refreshBtn.disabled = false;
         }
     }
@@ -934,219 +710,84 @@
     ========================================================= */
 
     let currentMatches = [];
-
     let activeIndex = -1;
-
     let selectedPatient = null;
 
 
     function renderActiveHighlight() {
+        const items = suggestionsBox.querySelectorAll('.suggestion-item[data-idx]');
+        items.forEach(el => el.classList.remove('active'));
 
-        const items =
-            suggestionsBox.querySelectorAll(
-                '.suggestion-item[data-idx]'
-            );
-
-        items.forEach(
-            el =>
-                el.classList.remove('active')
-        );
-
-
-        if (
-            activeIndex >= 0 &&
-            items[activeIndex]
-        ) {
-
-            items[activeIndex]
-                .classList.add('active');
-
-
-            items[activeIndex]
-                .scrollIntoView({
-                    block: 'nearest'
-                });
+        if (activeIndex >= 0 && items[activeIndex]) {
+            items[activeIndex].classList.add('active');
+            items[activeIndex].scrollIntoView({ block: 'nearest' });
         }
     }
 
 
-    searchInput.addEventListener(
-        'input',
-        (e) => {
+    searchInput.addEventListener('input', (e) => {
+        const query = normalizeArabic(e.target.value);
+        suggestionsBox.innerHTML = '';
+        activeIndex = -1;
+        selectedPatient = null;
 
-            const query =
-                normalizeArabic(
-                    e.target.value
-                );
-
-
-            suggestionsBox.innerHTML = '';
-
-            activeIndex = -1;
-
-            selectedPatient = null;
-
-
-            if (!query) {
-
-                suggestionsBox
-                    .classList
-                    .remove('open');
-
-                currentMatches = [];
-
-                return;
-            }
-
-
-            currentMatches =
-                patientsList
-                    .filter(
-                        p =>
-                            normalizeArabic(
-                                p.name
-                            ).includes(query)
-                    )
-                    .slice(0, 10);
-
-
-            if (
-                currentMatches.length === 0
-            ) {
-
-                suggestionsBox.innerHTML =
-                    '<div class="suggestion-item" style="color:#94a3b8;">لا يوجد نتائج...</div>';
-
-            }
-
-            else {
-
-                currentMatches.forEach(
-                    (patient, idx) => {
-
-                        const div =
-                            document.createElement(
-                                'div'
-                            );
-
-                        div.className =
-                            'suggestion-item';
-
-                        div.dataset.idx =
-                            idx;
-
-                        div.innerText =
-                            patient.name;
-
-
-                        div.onmousedown =
-                            (ev) => {
-
-                                ev.preventDefault();
-
-                                activeIndex =
-                                    idx;
-
-                                fillSticker(
-                                    patient
-                                );
-                            };
-
-
-                        suggestionsBox
-                            .appendChild(div);
-                    }
-                );
-            }
-
-
-            suggestionsBox
-                .classList
-                .add('open');
+        if (!query) {
+            suggestionsBox.classList.remove('open');
+            currentMatches = [];
+            return;
         }
-    );
 
+        currentMatches = patientsList
+            .filter(p => normalizeArabic(p.name).includes(query))
+            .slice(0, 10);
 
-    searchInput.addEventListener(
-        'keydown',
-        (e) => {
+        if (currentMatches.length === 0) {
+            suggestionsBox.innerHTML = '<div class="suggestion-item" style="color:#94a3b8;">لا يوجد نتائج...</div>';
+        } else {
+            currentMatches.forEach((patient, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.dataset.idx = idx;
+                div.innerText = patient.name;
 
-            if (
-                !suggestionsBox
-                    .classList
-                    .contains('open') ||
-                currentMatches.length === 0
-            ) {
-                return;
-            }
+                div.onmousedown = (ev) => {
+                    ev.preventDefault();
+                    activeIndex = idx;
+                    fillSticker(patient);
+                };
 
-
-            if (e.key === 'ArrowDown') {
-
-                e.preventDefault();
-
-                activeIndex =
-                    (activeIndex + 1) %
-                    currentMatches.length;
-
-                renderActiveHighlight();
-            }
-
-
-            else if (e.key === 'ArrowUp') {
-
-                e.preventDefault();
-
-                activeIndex =
-                    (
-                        activeIndex -
-                        1 +
-                        currentMatches.length
-                    ) %
-                    currentMatches.length;
-
-                renderActiveHighlight();
-            }
-
-
-            else if (e.key === 'Enter') {
-
-                e.preventDefault();
-
-                if (
-                    activeIndex >= 0 &&
-                    currentMatches[activeIndex]
-                ) {
-
-                    fillSticker(
-                        currentMatches[
-                            activeIndex
-                        ]
-                    );
-                }
-            }
-
-
-            else if (e.key === 'Escape') {
-
-                suggestionsBox
-                    .classList
-                    .remove('open');
-            }
+                suggestionsBox.appendChild(div);
+            });
         }
-    );
+
+        suggestionsBox.classList.add('open');
+    });
 
 
-    searchInput.addEventListener(
-        'blur',
-        () =>
-            setTimeout(
-                () =>
-                    suggestionsBox
-                        .classList
-                        .remove('open'),
-                150
-            )
+    searchInput.addEventListener('keydown', (e) => {
+        if (!suggestionsBox.classList.contains('open') || currentMatches.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % currentMatches.length;
+            renderActiveHighlight();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = (activeIndex - 1 + currentMatches.length) % currentMatches.length;
+            renderActiveHighlight();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && currentMatches[activeIndex]) {
+                fillSticker(currentMatches[activeIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsBox.classList.remove('open');
+        }
+    });
+
+
+    searchInput.addEventListener('blur', () =>
+        setTimeout(() => suggestionsBox.classList.remove('open'), 150)
     );
 
 
@@ -1155,23 +796,11 @@
     ========================================================= */
 
     function fillSticker(patient) {
-
         selectedPatient = patient;
-
-        searchInput.value =
-            patient.name;
-
-        suggestionsBox
-            .classList
-            .remove('open');
-
-
-        stName.innerText =
-            patient.name || "---";
-
-
-        stUnifiedId.innerText =
-            patient.unifiedId || "---";
+        searchInput.value = patient.name;
+        suggestionsBox.classList.remove('open');
+        stName.innerText = patient.name || "---";
+        stUnifiedId.innerText = patient.unifiedId || "---";
     }
 
 
@@ -1180,28 +809,17 @@
     ========================================================= */
 
     function loadLogoImage() {
-
         return new Promise((resolve, reject) => {
-
-        const img = new Image();
-
-        img.onload = () => resolve(img);
-
-        img.onerror = () => {
-
-            const fallback = new Image();
-
-            fallback.onload = () => resolve(fallback);
-
-            fallback.onerror = reject;
-
-            fallback.src =
-                'TWEAKS/MEpics/sidnawi_thermal_logo.png';
-        };
-
-        img.src =
-            'MEpics/sidnawi_thermal_logo.png';
-    });
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+                const fallback = new Image();
+                fallback.onload = () => resolve(fallback);
+                fallback.onerror = reject;
+                fallback.src = 'TWEAKS/MEpics/sidnawi_thermal_logo.png';
+            };
+            img.src = 'MEpics/sidnawi_thermal_logo.png';
+        });
     }
 
 
@@ -1209,169 +827,83 @@
        رسم النص العربي على Canvas
     ========================================================= */
 
-    function drawTextRTL(
-        ctx,
-        text,
-        x,
-        y,
-        font,
-        maxWidth
-    ) {
-
+    function drawTextRTL(ctx, text, x, y, font, maxWidth) {
         ctx.save();
-
         ctx.direction = 'rtl';
-
         ctx.textAlign = 'center';
-
         ctx.textBaseline = 'middle';
-
         ctx.font = font;
-
         ctx.fillStyle = '#000000';
-
         ctx.strokeStyle = '#000000';
-
         ctx.lineWidth = 0.35;
-
-        ctx.strokeText(
-            text,
-            x,
-            y,
-            maxWidth
-        );
-
-        ctx.fillText(
-            text,
-            x,
-            y,
-            maxWidth
-        );
-
+        ctx.strokeText(text, x, y, maxWidth);
+        ctx.fillText(text, x, y, maxWidth);
         ctx.restore();
     }
 
 
     /* =========================================================
-       إنشاء Bitmap واحد للاستكر
+       إنشاء Bitmap واحد للاستكر (مرسوم فوق بعضه بنفس إحداثيات المعاينة)
     ========================================================= */
 
     async function createThermalSticker() {
+        const canvas = document.createElement('canvas');
+        canvas.width = PRINT_WIDTH;
+        canvas.height = PRINT_HEIGHT;
 
-        const canvas =
-            document.createElement('canvas');
-
-        canvas.width =
-            PRINT_WIDTH;
-
-        canvas.height =
-            PRINT_HEIGHT;
-
-
-        const ctx =
-            canvas.getContext('2d', {
-                alpha: false
-            });
-
+        const ctx = canvas.getContext('2d', { alpha: false });
 
         /* خلفية بيضاء */
-        ctx.fillStyle =
-            '#ffffff';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, PRINT_WIDTH, PRINT_HEIGHT);
 
-        ctx.fillRect(
-            0,
-            0,
-            PRINT_WIDTH,
-            PRINT_HEIGHT
-        );
-
-
-        const name =
-            stName.innerText
-                .trim() || '---';
-
-
-        const unified =
-            stUnifiedId.innerText
-                .trim() || '---';
-
+        const name = stName.innerText.trim() || '---';
+        const unified = stUnifiedId.innerText.trim() || '---';
 
         /* =====================================================
-           اللوجو (صغير جداً وفي أسفل الشمال)
+           اللوجو (صغير جداً وفي أسفل الشمال - مطابق للمعاينة)
         ===================================================== */
-
         try {
+            const logo = await loadLogoImage();
 
-            const logo =
-                await loadLogoImage();
-
-            /* تصغير اللوجو أكثر (عرض في حدود 90 بيكسل) */
             const maxLogoWidth = 90;
             const maxLogoHeight = 32;
 
-            const ratio =
-                Math.min(
-                    maxLogoWidth /
-                        logo.naturalWidth,
+            const ratio = Math.min(
+                maxLogoWidth / logo.naturalWidth,
+                maxLogoHeight / logo.naturalHeight
+            );
 
-                    maxLogoHeight /
-                        logo.naturalHeight
-                );
+            const logoWidth = logo.naturalWidth * ratio;
+            const logoHeight = logo.naturalHeight * ratio;
 
-            const logoWidth =
-                logo.naturalWidth * ratio;
-
-            const logoHeight =
-                logo.naturalHeight * ratio;
-
-            /* وضعه في أسفل الشمال: X على اليسار، Y في الأسفل تماماً */
+            /* إحداثيات أسفل الشمال تماماً زي الـ CSS */
             const logoX = 20; 
             const logoY = PRINT_HEIGHT - logoHeight - 15; 
 
             ctx.imageSmoothingEnabled = false;
-
-            ctx.drawImage(
-                logo,
-                logoX,
-                logoY,
-                logoWidth,
-                logoHeight
-            );
-
-        }
-
-        catch (error) {
-
-            console.warn(
-                'Logo could not be loaded',
-                error
-            );
+            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        } catch (error) {
+            console.warn('Logo could not be loaded', error);
         }
 
 
         /* =====================================================
-           اسم المريض (أكبر حجماً ومجبر في سطر واحد)
+           اسم المريض (مرفوع لفوق وفي سطر واحد)
         ===================================================== */
-
         let nameText = name;
-
         let nameFontSize = 45;
 
-        if (nameText.length > 18) {
-            nameFontSize = 38;
-        }
-        if (nameText.length > 28) {
-            nameFontSize = 32;
-        }
-        if (nameText.length > 38) {
-            nameFontSize = 26;
-        }
+        if (nameText.length > 18) nameFontSize = 38;
+        if (nameText.length > 28) nameFontSize = 32;
+        if (nameText.length > 38) nameFontSize = 26;
 
+        /* تم رفع الإحداثي الرأسي ليكون في الأعلى (y = 55) لتطابق المعاينة */
         drawTextRTL(
             ctx,
             nameText,
             PRINT_WIDTH / 2,
-            90, 
+            58, 
             `900 ${nameFontSize}px Tahoma, Arial, sans-serif`,
             380
         );
@@ -1380,23 +912,19 @@
         /* =====================================================
            الرقم الموحد
         ===================================================== */
+        const unifiedText = `رقم موحد: ${unified}`;
 
-        const unifiedText =
-            `رقم موحد: ${unified}`;
-
+        /* تم رفعه ليكون تحت الاسم مباشرة (y = 125) لتطابق المعاينة */
         drawTextRTL(
             ctx,
             unifiedText,
             PRINT_WIDTH / 2,
-            175, 
+            125, 
             `900 28px Tahoma, Arial, sans-serif`,
             380
         );
 
-
-        return canvas.toDataURL(
-            'image/png'
-        );
+        return canvas.toDataURL('image/png');
     }
 
 
@@ -1405,133 +933,55 @@
     ========================================================= */
 
     async function printStickers() {
+        const printContainer = document.getElementById('print-container');
 
-        const printContainer =
-            document.getElementById(
-                'print-container'
-            );
-
-
-        if (
-            dataStatus === 'loading'
-        ) {
-            const proceed =
-                confirm(
-                    '⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟'
-                );
+        if (dataStatus === 'loading') {
+            const proceed = confirm('⏳ البيانات لسه بتتحمل من الشيت. هل تحب تكمل الطباعة برضه؟');
             if (!proceed) return;
         }
 
-
-        if (
-            !selectedPatient &&
-            stName.innerText.trim() ===
-                'اسم المريض'
-        ) {
-            const proceed =
-                confirm(
-                    '⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟'
-                );
+        if (!selectedPatient && stName.innerText.trim() === 'اسم المريض') {
+            const proceed = confirm('⚠️ لسه معملتش بحث عن مريض، والاستيكر لسه فاضي. هل تحب تكمل الطباعة؟');
             if (!proceed) return;
         }
 
+        let copies = parseInt(copiesCount.value, 10);
+        if (isNaN(copies) || copies < 1) copies = 1;
+        if (copies > 50) copies = 50;
 
-        let copies =
-            parseInt(
-                copiesCount.value,
-                10
-            );
-
-        if (isNaN(copies) || copies < 1) {
-            copies = 1;
-        }
-
-        if (copies > 50) {
-            copies = 50;
-        }
-
-
-        const printButton =
-            document.querySelector(
-                '.btn-print'
-            );
-
-        const oldButtonText =
-            printButton.innerText;
-
+        const printButton = document.querySelector('.btn-print');
+        const oldButtonText = printButton.innerText;
         printButton.disabled = true;
-
-        printButton.innerText =
-            '⏳ تجهيز الطباعة...';
-
+        printButton.innerText = '⏳ تجهيز الطباعة...';
 
         try {
-
             printContainer.innerHTML = '';
+            const imageData = await createThermalSticker();
 
-            const imageData =
-                await createThermalSticker();
-
-            for (
-                let i = 0;
-                i < copies;
-                i++
-            ) {
-
-                const img =
-                    document.createElement(
-                        'img'
-                    );
-
-                img.className =
-                    'thermal-print-image';
-
-                img.src =
-                    imageData;
-
-                img.width =
-                    PRINT_WIDTH;
-
-                img.height =
-                    PRINT_HEIGHT;
-
-                printContainer
-                    .appendChild(img);
+            for (let i = 0; i < copies; i++) {
+                const img = document.createElement('img');
+                img.className = 'thermal-print-image';
+                img.src = imageData;
+                img.width = PRINT_WIDTH;
+                img.height = PRINT_HEIGHT;
+                printContainer.appendChild(img);
             }
 
-            await new Promise(
-                resolve =>
-                    requestAnimationFrame(
-                        () =>
-                            requestAnimationFrame(
-                                resolve
-                            )
-                    )
+            await new Promise(resolve =>
+                requestAnimationFrame(() =>
+                    requestAnimationFrame(resolve)
+                )
             );
 
             window.print();
-
-        }
-
-        catch (error) {
-
+        } catch (error) {
             console.error(error);
-
-            alert(
-                'حدث خطأ أثناء تجهيز الاستيكر للطباعة.'
-            );
-
-        }
-
-        finally {
-
+            alert('حدث خطأ أثناء تجهيز الاستيكر للطباعة.');
+        } finally {
             printButton.disabled = false;
-
-            printButton.innerText =
-                oldButtonText;
+            printButton.innerText = oldButtonText;
         }
     }
-
 
     loadData();
 
