@@ -596,7 +596,7 @@
        تحميل أسماء المرضى (CSV مباشر بدون كاش)
        ========================================================= */
 
-    async function fetchPatientsCSV(retries = 1)() {
+    async function fetchPatientsCSV(retries = 1){
        loadingIndicator.style.color = '#2563eb';
     loadingIndicator.innerText = retries === 1 
         ? 'جاري مزامنة أسماء المرضى من الشيت... ⏳' 
