@@ -642,65 +642,51 @@
        تحميل أسماء المرضى
        ========================================================= */
 
-    async function fetchPatientsCSV() {
+    async function fetchPatientsJSON() {
 
-         const cachedPatients = safeGetLocal('patients_list_cache');
+        const cachedPatients = safeGetLocal('patients_list_cache');
+    
     if (cachedPatients) {
         try {
             patientsData = JSON.parse(cachedPatients);
             loadingIndicator.style.color = '#16a34a';
-            loadingIndicator.innerText = `⚡ تم تحميل الأسماء من الذاكرة (${patientsData.length} مريض)`;
+            loadingIndicator.innerText = `⚡ تم التحميل من الذاكرة (${patientsData.length} مريض)`;
             setTimeout(() => { loadingIndicator.innerText = ''; }, 2000);
         } catch (e) {}
     } else {
+        // لو أول مرة يفتح الموقع نهائياً
         loadingIndicator.style.color = '#2563eb';
-        loadingIndicator.innerText = 'جاري مزامنة أسماء المرضى من الشيت... ⏳';
+        loadingIndicator.innerText = 'جاري سحب أسماء المرضى لأول مرة... ⏳';
     }
 
-    // 2. سحب البيانات الجديدة في الخلفية بصمت
+    // 2. التحديث الصامت والمستقر من السيرفر (JSON)
     try {
-        const response = await fetch(CSV_URL, { cache: 'no-store' }); // منع الكاش الخاص بالمتصفح لجلب أحدث داتا
-        if (!response.ok) throw new Error('فشل جلب الـ CSV');
+        // استخدام API_URL الموثوق بدلاً من CSV_URL
+        const response = await fetch(API_URL); 
         
-        const csvText = await response.text();
-        const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+        if (!response.ok) throw new Error('فشل الاتصال بالسيرفر');
         
-        if (lines.length < 2) return;
+        // تحويل البيانات الجاهزة
+        const freshData = await response.json();
 
-        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
-        let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
-        let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
-        
-        if (nameIdx === -1) nameIdx = 1;
-        if (dateIdx === -1) dateIdx = 2;
-
-        let freshData = [];
-        for (let i = 1; i < lines.length; i++) {
-            const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
-            const name = cols[nameIdx] || '';
-            const date = cols[dateIdx] || '';
+        if (freshData && freshData.length > 0) {
+            patientsData = freshData;
             
-            if (name) {
-                freshData.push({ name: name, admissionDate: date });
-            }
-        }
+            // حفظ النسخة الأحدث في الذاكرة للمرة القادمة
+            safeSetLocal('patients_list_cache', JSON.stringify(patientsData));
 
-        // تحديث القائمة بالبيانات الجديدة وحفظها للمرة القادمة
-        patientsData = freshData;
-        safeSetLocal('patients_list_cache', JSON.stringify(patientsData));
-
-        if (!cachedPatients) {
-            loadingIndicator.style.color = '#16a34a';
-            loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+            // رسالة طمأنة للتحديث الصامت
+            loadingIndicator.style.color = '#10b981';
+            loadingIndicator.innerText = `🔄 تم تحديث الأسماء بآخر نسخة (${patientsData.length} مريض)`;
             setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
         }
     } catch (e) {
-        console.error(e);
+        console.error("خطأ في المزامنة:", e);
         if (!cachedPatients) {
             loadingIndicator.style.color = '#dc2626';
-            loadingIndicator.innerText = '⚠️ تعذر سحب الأسماء التلقائي';
+            loadingIndicator.innerText = '⚠️ تعذر الاتصال، يرجى فحص الإنترنت';
         }
-    }
+      }
     }
 
 
@@ -1779,7 +1765,7 @@
        تشغيل الصفحة
        ========================================================= */
 
-    fetchPatientsCSV();
+    fetchPatientsJSON();
 
     loadFromLocalStorage();
 
