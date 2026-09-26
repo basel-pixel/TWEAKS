@@ -592,56 +592,7 @@
     }
 
 
-    /* =========================================================
-       CSV Parser
-       ========================================================= */
-
-    function parseCSVLine(text) {
-
-        let result = [];
-
-        let current = '';
-
-        let inQuotes = false;
-
-
-        for (let i = 0; i < text.length; i++) {
-
-            let char = text[i];
-
-
-            if (char === '"') {
-
-                inQuotes = !inQuotes;
-
-            }
-
-            else if (char === ',' && !inQuotes) {
-
-                result.push(current.trim());
-
-                current = '';
-
-            }
-
-            else {
-
-                current += char;
-
-            }
-        }
-
-
-        result.push(current.trim());
-
-        return result;
-    }
-
-
-    /* =========================================================
-       تحميل أسماء المرضى
-       ========================================================= */
-
+    
     async function fetchPatientsJSON() {
 
        const cachedPatients = safeGetLocal('patients_list_cache');
