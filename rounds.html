@@ -644,134 +644,63 @@
 
     async function fetchPatientsCSV() {
 
-        loadingIndicator.style.color = '#2563eb';
-
-        loadingIndicator.innerText =
-            'جاري مزامنة أسماء المرضى من الشيت... ⏳';
-
-
+         const cachedPatients = safeGetLocal('patients_list_cache');
+    if (cachedPatients) {
         try {
-
-            const response =
-                await fetch(CSV_URL);
-
-
-            if (!response.ok) {
-
-                throw new Error('فشل جلب الـ CSV');
-
-            }
-
-
-            const csvText =
-                await response.text();
-
-
-            const lines =
-                csvText
-                    .split(/\r\n|\n/)
-                    .filter(l => l.trim() !== '');
-
-
-            if (lines.length < 2) {
-
-                return;
-
-            }
-
-
-            const headers =
-                parseCSVLine(lines[0])
-                    .map(h =>
-                        h.replace(/^"|"$/g, '').trim()
-                    );
-
-
-            let nameIdx =
-                headers.findIndex(h =>
-                    h.includes('اسم') ||
-                    h.toLowerCase().includes('name')
-                );
-
-
-            let dateIdx =
-                headers.findIndex(h =>
-                    h.includes('تاريخ') ||
-                    h.toLowerCase().includes('date') ||
-                    h.toLowerCase().includes('admission')
-                );
-
-
-            if (nameIdx === -1) {
-
-                nameIdx = 1;
-
-            }
-
-
-            if (dateIdx === -1) {
-
-                dateIdx = 2;
-
-            }
-
-
-            patientsData = [];
-
-
-            for (let i = 1; i < lines.length; i++) {
-
-                const cols =
-                    parseCSVLine(lines[i])
-                        .map(c =>
-                            c.replace(/^"|"$/g, '').trim()
-                        );
-
-
-                const name =
-                    cols[nameIdx] || '';
-
-
-                const date =
-                    cols[dateIdx] || '';
-
-
-                if (name) {
-
-                    patientsData.push({
-                        name: name,
-                        admissionDate: date
-                    });
-
-                }
-            }
-
-
+            patientsData = JSON.parse(cachedPatients);
             loadingIndicator.style.color = '#16a34a';
+            loadingIndicator.innerText = `⚡ تم تحميل الأسماء من الذاكرة (${patientsData.length} مريض)`;
+            setTimeout(() => { loadingIndicator.innerText = ''; }, 2000);
+        } catch (e) {}
+    } else {
+        loadingIndicator.style.color = '#2563eb';
+        loadingIndicator.innerText = 'جاري مزامنة أسماء المرضى من الشيت... ⏳';
+    }
 
-            loadingIndicator.innerText =
-                `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+    // 2. سحب البيانات الجديدة في الخلفية بصمت
+    try {
+        const response = await fetch(CSV_URL, { cache: 'no-store' }); // منع الكاش الخاص بالمتصفح لجلب أحدث داتا
+        if (!response.ok) throw new Error('فشل جلب الـ CSV');
+        
+        const csvText = await response.text();
+        const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+        
+        if (lines.length < 2) return;
 
+        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+        let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
+        let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
+        
+        if (nameIdx === -1) nameIdx = 1;
+        if (dateIdx === -1) dateIdx = 2;
 
-            setTimeout(() => {
-
-                loadingIndicator.innerText = '';
-
-            }, 3000);
-
-
+        let freshData = [];
+        for (let i = 1; i < lines.length; i++) {
+            const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+            const name = cols[nameIdx] || '';
+            const date = cols[dateIdx] || '';
+            
+            if (name) {
+                freshData.push({ name: name, admissionDate: date });
+            }
         }
 
-        catch (e) {
+        // تحديث القائمة بالبيانات الجديدة وحفظها للمرة القادمة
+        patientsData = freshData;
+        safeSetLocal('patients_list_cache', JSON.stringify(patientsData));
 
-            console.error(e);
-
+        if (!cachedPatients) {
+            loadingIndicator.style.color = '#16a34a';
+            loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+            setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
+        }
+    } catch (e) {
+        console.error(e);
+        if (!cachedPatients) {
             loadingIndicator.style.color = '#dc2626';
-
-            loadingIndicator.innerText =
-                '⚠️ تعذر سحب الأسماء تلقائياً';
-
+            loadingIndicator.innerText = '⚠️ تعذر سحب الأسماء التلقائي';
         }
+    }
     }
 
 
