@@ -644,7 +644,7 @@
 
     async function fetchPatientsJSON() {
 
-        const cachedPatients = safeGetLocal('patients_list_cache');
+       const cachedPatients = safeGetLocal('patients_list_cache');
     
     if (cachedPatients) {
         try {
@@ -654,37 +654,38 @@
             setTimeout(() => { loadingIndicator.innerText = ''; }, 2000);
         } catch (e) {}
     } else {
-        // لو أول مرة يفتح الموقع نهائياً
         loadingIndicator.style.color = '#2563eb';
         loadingIndicator.innerText = 'جاري سحب أسماء المرضى لأول مرة... ⏳';
     }
 
-    // 2. التحديث الصامت والمستقر من السيرفر (JSON)
     try {
-        // استخدام API_URL الموثوق بدلاً من CSV_URL
-        const response = await fetch(API_URL); 
+        const response = await fetch(API_URL, {
+            method: "GET",
+            redirect: "follow"
+        }); 
         
         if (!response.ok) throw new Error('فشل الاتصال بالسيرفر');
         
-        // تحويل البيانات الجاهزة
         const freshData = await response.json();
 
+        // معالجة البيانات سواء كانت موجودة أو فارغة
         if (freshData && freshData.length > 0) {
             patientsData = freshData;
-            
-            // حفظ النسخة الأحدث في الذاكرة للمرة القادمة
             safeSetLocal('patients_list_cache', JSON.stringify(patientsData));
-
-            // رسالة طمأنة للتحديث الصامت
+            
             loadingIndicator.style.color = '#10b981';
-            loadingIndicator.innerText = `🔄 تم تحديث الأسماء بآخر نسخة (${patientsData.length} مريض)`;
+            loadingIndicator.innerText = `🔄 تم تحديث الأسماء (${patientsData.length} مريض)`;
             setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
+        } else {
+            // في حالة كان الشيت فارغاً
+            loadingIndicator.style.color = '#f59e0b'; // لون برتقالي للتنبيه
+            loadingIndicator.innerText = '⚠️ الشيت متصل، لكن قائمة المرضى فارغة حالياً';
         }
     } catch (e) {
         console.error("خطأ في المزامنة:", e);
         if (!cachedPatients) {
             loadingIndicator.style.color = '#dc2626';
-            loadingIndicator.innerText = '⚠️ تعذر الاتصال، يرجى فحص الإنترنت';
+            loadingIndicator.innerText = '⚠️ تعذر الاتصال، يرجى فحص الإنترنت أو الرابط';
         }
       }
     }
