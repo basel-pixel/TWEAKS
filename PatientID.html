@@ -229,7 +229,7 @@
 
         /* =========================================================
            الاستيكر الخاص بالمعاينة 
-           تم تثبيته ليكون 50 بالعرض و 30 بالطول ليناسب التعديل المريح
+           بقي 50 بالعرض و 30 بالطول
         ========================================================= */
         .sticker {
             width: 50mm !important;
@@ -253,13 +253,11 @@
             text-align: center;
             font-weight: 900;
             color: #000000 !important;
-            /* التعديل هنا: السماح بنزول النص لسطر جديد */
             white-space: normal; 
             line-height: 1.2;
             padding: 0 2mm;
             outline: none;
             transition: font-size 0.2s;
-            /* تحديد أقصى ارتفاع عشان ميغطيش على الرقم الموحد */
             max-height: 12mm;
             overflow: hidden;
         }
@@ -299,7 +297,7 @@
         }
 
         /* =========================================================
-           إعدادات الطباعة: الورقة ستكون بالطول (30mm عرض × 50mm طول)
+           إعدادات الطباعة: الورقة ستكون بالعرض (50mm عرض × 30mm طول)
         ========================================================= */
         @media print {
             * {
@@ -310,8 +308,8 @@
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 30mm !important;
-                height: 50mm !important;
+                width: 50mm !important;
+                height: 30mm !important;
                 background: #ffffff !important;
                 color: #000000 !important;
             }
@@ -321,21 +319,21 @@
 
             #print-container {
                 display: block !important;
-                width: 30mm !important;
-                height: 50mm !important;
+                width: 50mm !important;
+                height: 30mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
 
             @page {
-                size: 30mm 50mm; /* الورقة بالطول Portrait */
+                size: 50mm 30mm; /* الورقة بالعرض Landscape */
                 margin: 0;
             }
 
             .thermal-print-image {
                 display: block !important;
-                width: 30mm !important;
-                height: 50mm !important;
+                width: 50mm !important;
+                height: 30mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: always;
@@ -377,7 +375,6 @@
         <div class="preview-section">
             <div class="preview-title">معاينة الاستيكر (الاسم يصغر تلقائياً ليناسب سطر واحد)</div>
             
-            <!-- المعاينة بالعرض لسهولة القراءة ويمكن التعديل عليها مباشرة -->
             <div class="sticker" id="preview-sticker">
                 <div class="preview-st-name" id="st-name" contenteditable="true">اسم المريض</div>
                 <div class="preview-st-unified">
@@ -393,7 +390,6 @@
     <div id="print-container"></div>
 
 <script>
-    // الرابط السليم للـ CSV 
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeEUxAcEspHRKlu7XJ6WIyN7__IMKqzSo1iMryvgH1T3upSkuXpkOTb9sSeDQhhuokPe4ZFem3P1mW/pub?gid=95330193&single=true&output=csv";
 
     let patientsList = [];
@@ -405,7 +401,6 @@
     const stName = document.getElementById('st-name');
     const stUnifiedId = document.getElementById('st-unified-id');
 
-    // تصغير الخط أوتوماتيك في المعاينة لو الاسم طويل
     function adjustPreviewNameSize() {
         const text = stName.innerText.trim();
         if (text.length > 35) {
@@ -419,7 +414,6 @@
         }
     }
 
-    // تفعيل التصغير عند التعديل اليدوي
     stName.addEventListener('input', adjustPreviewNameSize);
 
     function normalizeArabic(text) {
@@ -600,11 +594,9 @@
         searchInput.value = patient.name;
         suggestionsBox.classList.remove('open');
         
-        // تعبئة البيانات
         stName.innerText = patient.name || "---";
         stUnifiedId.innerText = patient.unifiedId || "---";
 
-        // تصغير الخط لو الاسم طويل
         adjustPreviewNameSize();
     }
 
@@ -637,14 +629,14 @@
     }
 
     /* 
-       توليد الاستيكر الحراري للطباعة بالطول (Portrait) مع دوران الكلام 90 درجة
+       توليد الاستيكر الحراري للطباعة بالعرض (Landscape)
     */
     async function createThermalSticker() {
         const canvas = document.createElement('canvas');
         
-        // الأبعاد المقلوبة للطباعة الطولية (30 عرض و 50 طول)
-        canvas.width = 240;  
-        canvas.height = 400; 
+        // الأبعاد للطباعة العرضية (50 عرض و 30 طول)
+        canvas.width = 400;  
+        canvas.height = 240; 
 
         const ctx = canvas.getContext('2d', { alpha: false });
 
@@ -654,11 +646,6 @@
 
         ctx.save();
 
-        // لف الـ Canvas 90 درجة في اتجاه عقارب الساعة لتناسب الورقة الطولية
-        ctx.translate(240, 0);
-        ctx.rotate(90 * Math.PI / 180);
-
-        // هنا بنرسم كأننا في مساحة عرضية (400 عرض و 240 طول)
         const LOGICAL_WIDTH = 400;
         const LOGICAL_HEIGHT = 240;
 
@@ -744,7 +731,7 @@
         try {
             printContainer.innerHTML = '';
             
-            // استخراج صورة الطباعة اللي اتلفت 90 درجة
+            // استخراج صورة الطباعة العرضية
             const imageData = await createThermalSticker();
 
             for (let i = 0; i < copies; i++) {
@@ -770,7 +757,6 @@
         }
     }
 
-    // بدء تحميل البيانات فور فتح الصفحة وتظبيط المعاينة المبدئية
     adjustPreviewNameSize();
     loadData();
 </script>
