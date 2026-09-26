@@ -483,16 +483,10 @@
        ========================================================= */
 
     const tbody = document.getElementById('table-body');
-
     const deptInput = document.getElementById('input-dept');
-
     const docInput = document.getElementById('input-doc');
-
     const displayDateEl = document.getElementById('display-date');
-
-    const loadingIndicator =
-        document.getElementById('loading-indicator');
-
+    const loadingIndicator = document.getElementById('loading-indicator');
     const originalTitle = document.title;
 
 
@@ -515,34 +509,23 @@
        ========================================================= */
 
     function safeGetLocal(key) {
-
         try {
             return localStorage.getItem(key);
-        }
-
-        catch (e) {
+        } catch (e) {
             return null;
         }
     }
 
-
     function safeSetLocal(key, value) {
-
         try {
             localStorage.setItem(key, value);
-        }
-
-        catch (e) {}
+        } catch (e) {}
     }
 
-
     function safeRemoveLocal(key) {
-
         try {
             localStorage.removeItem(key);
-        }
-
-        catch (e) {}
+        } catch (e) {}
     }
 
 
@@ -565,80 +548,108 @@
        ========================================================= */
 
     function normalizeArabicText(text) {
-
         return String(text || '')
             .trim()
             .toLowerCase()
-
             // إزالة التشكيل
             .replace(/[\u064B-\u065F\u0670]/g, '')
-
             // توحيد الألف
             .replace(/[أإآٱ]/g, 'ا')
-
             // الألف المقصورة
             .replace(/ى/g, 'ي')
-
             // التاء المربوطة
             .replace(/ة/g, 'ه')
-
             // الهمزات
             .replace(/[ؤئ]/g, 'ء')
-
             // توحيد المسافات
             .replace(/\s+/g, ' ')
-
             .trim();
     }
 
 
-    
-    async function fetchPatientsJSON() {
+    /* =========================================================
+       تفريق نص الـ CSV
+       ========================================================= */
 
-       const cachedPatients = safeGetLocal('patients_list_cache');
-    
-    if (cachedPatients) {
-        try {
-            patientsData = JSON.parse(cachedPatients);
-            loadingIndicator.style.color = '#16a34a';
-            loadingIndicator.innerText = `⚡ تم التحميل من الذاكرة (${patientsData.length} مريض)`;
-            setTimeout(() => { loadingIndicator.innerText = ''; }, 2000);
-        } catch (e) {}
-    } else {
-        loadingIndicator.style.color = '#2563eb';
-        loadingIndicator.innerText = 'جاري سحب أسماء المرضى لأول مرة... ⏳';
+    function parseCSVLine(text) {
+        let result = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            let char = text[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result;
     }
 
-    try {
-        const response = await fetch(API_URL, {
-            method: "GET",
-            redirect: "follow"
-        }); 
-        
-        if (!response.ok) throw new Error('فشل الاتصال بالسيرفر');
-        
-        const freshData = await response.json();
 
-        // معالجة البيانات سواء كانت موجودة أو فارغة
-        if (freshData && freshData.length > 0) {
-            patientsData = freshData;
-            safeSetLocal('patients_list_cache', JSON.stringify(patientsData));
-            
-            loadingIndicator.style.color = '#10b981';
-            loadingIndicator.innerText = `🔄 تم تحديث الأسماء (${patientsData.length} مريض)`;
-            setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
-        } else {
-            // في حالة كان الشيت فارغاً
-            loadingIndicator.style.color = '#f59e0b'; // لون برتقالي للتنبيه
-            loadingIndicator.innerText = '⚠️ الشيت متصل، لكن قائمة المرضى فارغة حالياً';
-        }
-    } catch (e) {
-        console.error("خطأ في المزامنة:", e);
-        if (!cachedPatients) {
+    /* =========================================================
+       تحميل أسماء المرضى (CSV مباشر بدون كاش)
+       ========================================================= */
+
+    async function fetchPatientsCSV() {
+        loadingIndicator.style.color = '#2563eb';
+        loadingIndicator.innerText = 'جاري مزامنة أسماء المرضى من الشيت... ⏳';
+
+        try {
+            const response = await fetch(CSV_URL);
+
+            if (!response.ok) {
+                throw new Error('فشل جلب الـ CSV');
+            }
+
+            const csvText = await response.text();
+            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
+
+            if (lines.length < 2) {
+                loadingIndicator.style.color = '#f59e0b';
+                loadingIndicator.innerText = '⚠️ الشيت فارغ من الأسماء';
+                return;
+            }
+
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
+            let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
+
+            if (nameIdx === -1) nameIdx = 1;
+            if (dateIdx === -1) dateIdx = 2;
+
+            patientsData = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                const name = cols[nameIdx] || '';
+                const date = cols[dateIdx] || '';
+
+                if (name) {
+                    patientsData.push({
+                        name: name,
+                        admissionDate: date
+                    });
+                }
+            }
+
+            loadingIndicator.style.color = '#16a34a';
+            loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+
+            setTimeout(() => {
+                loadingIndicator.innerText = '';
+            }, 3000);
+
+        } catch (e) {
+            console.error(e);
             loadingIndicator.style.color = '#dc2626';
-            loadingIndicator.innerText = '⚠️ تعذر الاتصال، يرجى فحص الإنترنت أو الرابط';
+            loadingIndicator.innerText = '⚠️ تعذر سحب الأسماء تلقائياً';
         }
-      }
     }
 
 
@@ -647,35 +658,16 @@
        ========================================================= */
 
     function parseDateToInputValue(rawDate) {
-
         if (!rawDate) return '';
-
-        const str =
-            String(rawDate).trim();
-
-
-        let m =
-            str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-
-
+        const str = String(rawDate).trim();
+        let m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (m) {
-
             return `${m[1]}-${m[2]}-${m[3]}`;
-
         }
-
-
-        m =
-            str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-
-
+        m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
         if (m) {
-
             return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
-
         }
-
-
         return '';
     }
 
@@ -685,19 +677,11 @@
        ========================================================= */
 
     function renumberRows() {
-
         Array.from(tbody.rows).forEach((tr, idx) => {
-
-            const numCell =
-                tr.querySelector('.row-num');
-
-
+            const numCell = tr.querySelector('.row-num');
             if (numCell) {
-
                 numCell.textContent = idx + 1;
-
             }
-
         });
     }
 
@@ -707,635 +691,196 @@
        ========================================================= */
 
     function addRow(rowData = {}) {
-
-        const tr =
-            document.createElement('tr');
-
+        const tr = document.createElement('tr');
 
         /* رقم */
-
-        const tdNum =
-            document.createElement('td');
-
-        tdNum.className =
-            'row-num';
-
+        const tdNum = document.createElement('td');
+        tdNum.className = 'row-num';
         tr.appendChild(tdNum);
 
-
         /* اسم المريض */
+        const tdName = document.createElement('td');
+        const nameWrapper = document.createElement('div');
+        nameWrapper.className = 'name-cell-wrapper';
 
-        const tdName =
-            document.createElement('td');
-
-
-        const nameWrapper =
-            document.createElement('div');
-
-        nameWrapper.className =
-            'name-cell-wrapper';
-
-
-        const nameInput =
-            document.createElement('input');
-
+        const nameInput = document.createElement('input');
         nameInput.type = 'text';
+        nameInput.className = 'table-input name-input';
+        nameInput.placeholder = 'ابحث أو اكتب اسم المريض...';
+        nameInput.autocomplete = 'off';
+        nameInput.value = rowData.name || '';
 
-        nameInput.className =
-            'table-input name-input';
-
-        nameInput.placeholder =
-            'ابحث أو اكتب اسم المريض...';
-
-        nameInput.autocomplete =
-            'off';
-
-        nameInput.value =
-            rowData.name || '';
-
-
-        const suggestionsBox =
-            document.createElement('div');
-
-        suggestionsBox.className =
-            'suggestions-box';
-
+        const suggestionsBox = document.createElement('div');
+        suggestionsBox.className = 'suggestions-box';
 
         nameWrapper.appendChild(nameInput);
-
         nameWrapper.appendChild(suggestionsBox);
-
         tdName.appendChild(nameWrapper);
-
         tr.appendChild(tdName);
 
-
         /* تاريخ الدخول */
-
-        const tdDate =
-            document.createElement('td');
-
-
-        const dateCell =
-            document.createElement('input');
-
+        const tdDate = document.createElement('td');
+        const dateCell = document.createElement('input');
         dateCell.type = 'date';
-
-        dateCell.className =
-            'table-input table-date-input';
-
-        dateCell.value =
-            rowData.date || '';
-
-
+        dateCell.className = 'table-input table-date-input';
+        dateCell.value = rowData.date || '';
         tdDate.appendChild(dateCell);
-
         tr.appendChild(tdDate);
 
-
         /* الحقول الأخرى */
-
-        const editableFields = [
-            'residence',
-            'diag',
-            'plan',
-            'notes'
-        ];
-
-
+        const editableFields = ['residence', 'diag', 'plan', 'notes'];
         editableFields.forEach(field => {
-
-            const td =
-                document.createElement('td');
-
-
-            td.setAttribute(
-                'contenteditable',
-                'true'
-            );
-
-
-            td.textContent =
-                rowData[field] || '';
-
-
+            const td = document.createElement('td');
+            td.setAttribute('contenteditable', 'true');
+            td.textContent = rowData[field] || '';
             tr.appendChild(td);
-
         });
 
-
         /* زر الحذف */
+        const tdDel = document.createElement('td');
+        tdDel.className = 'no-print';
 
-        const tdDel =
-            document.createElement('td');
-
-        tdDel.className =
-            'no-print';
-
-
-        const delBtn =
-            document.createElement('button');
-
+        const delBtn = document.createElement('button');
         delBtn.type = 'button';
+        delBtn.className = 'delete-row-btn';
+        delBtn.textContent = '🗑️';
+        delBtn.title = 'حذف هذا الصف';
 
-        delBtn.className =
-            'delete-row-btn';
-
-        delBtn.textContent =
-            '🗑️';
-
-        delBtn.title =
-            'حذف هذا الصف';
-
-
-        delBtn.addEventListener(
-            'click',
-            function () {
-
-                if (
-                    confirm(
-                        'حذف هذا المريض من الشيت؟'
-                    )
-                ) {
-
-                    tr.remove();
-
-                    renumberRows();
-
-                    saveToLocalStorage();
-
-                }
-
+        delBtn.addEventListener('click', function () {
+            if (confirm('حذف هذا المريض من الشيت؟')) {
+                tr.remove();
+                renumberRows();
+                saveToLocalStorage();
             }
-        );
-
+        });
 
         tdDel.appendChild(delBtn);
-
         tr.appendChild(tdDel);
 
-
-        /* =====================================================
-           اختيار المريض
-           ===================================================== */
-
+        /* اختيار المريض */
         function applyPatientSelection(patient) {
-
-            nameInput.value =
-                patient.name;
-
-
-            const parsedDate =
-                parseDateToInputValue(
-                    patient.admissionDate
-                );
-
-
+            nameInput.value = patient.name;
+            const parsedDate = parseDateToInputValue(patient.admissionDate);
             if (parsedDate) {
-
-                dateCell.value =
-                    parsedDate;
-
+                dateCell.value = parsedDate;
             }
-
-
             closeSuggestions();
-
             saveToLocalStorage();
         }
 
-
-        /* =====================================================
-           إغلاق المقترحات
-           ===================================================== */
-
+        /* إغلاق المقترحات */
         function closeSuggestions() {
-
             suggestionsBox.classList.remove('open');
-
             suggestionsBox.innerHTML = '';
-
         }
 
-
-        /* =====================================================
-           عرض المقترحات الذكية
-           ===================================================== */
-
+        /* عرض المقترحات الذكية */
         function renderSuggestions(query) {
-
             suggestionsBox.innerHTML = '';
-
-
-            const normalizedQuery =
-                normalizeArabicText(query);
-
-
+            const normalizedQuery = normalizeArabicText(query);
             if (!normalizedQuery) {
-
                 closeSuggestions();
-
                 return;
-
             }
 
+            const queryWords = normalizedQuery.split(' ').filter(word => word.length > 0);
 
-            const queryWords =
-                normalizedQuery
-                    .split(' ')
-                    .filter(word => word.length > 0);
+            const matches = patientsData
+                .map(patient => {
+                    const normalizedName = normalizeArabicText(patient.name);
+                    const allWordsMatch = queryWords.every(word => normalizedName.includes(word));
+                    if (!allWordsMatch) return null;
 
+                    let score = 0;
+                    if (normalizedName === normalizedQuery) score += 200;
+                    if (normalizedName.startsWith(normalizedQuery)) score += 100;
+                    if (normalizedName.includes(normalizedQuery)) score += 50;
+                    score += queryWords.filter(word => normalizedName.includes(word)).length * 10;
 
-            const matches =
-                patientsData
-
-                    .map(patient => {
-
-                        const normalizedName =
-                            normalizeArabicText(
-                                patient.name
-                            );
-
-
-                        /*
-                         * لازم كل كلمات البحث
-                         * تكون موجودة داخل الاسم
-                         */
-
-                        const allWordsMatch =
-                            queryWords.every(word =>
-                                normalizedName.includes(word)
-                            );
-
-
-                        if (!allWordsMatch) {
-
-                            return null;
-
-                        }
-
-
-                        /* حساب قوة التطابق */
-
-                        let score = 0;
-
-
-                        /* تطابق الاسم بالكامل */
-
-                        if (
-                            normalizedName ===
-                            normalizedQuery
-                        ) {
-
-                            score += 200;
-
-                        }
-
-
-                        /* الاسم يبدأ بنفس البحث */
-
-                        if (
-                            normalizedName.startsWith(
-                                normalizedQuery
-                            )
-                        ) {
-
-                            score += 100;
-
-                        }
-
-
-                        /* الاسم يحتوي البحث كامل */
-
-                        if (
-                            normalizedName.includes(
-                                normalizedQuery
-                            )
-                        ) {
-
-                            score += 50;
-
-                        }
-
-
-                        /* تطابق الكلمات */
-
-                        score +=
-                            queryWords.filter(word =>
-                                normalizedName.includes(word)
-                            ).length * 10;
-
-
-                        return {
-                            patient: patient,
-                            score: score
-                        };
-
-                    })
-
-
-                    .filter(item => item !== null)
-
-
-                    .sort(
-                        (a, b) =>
-                            b.score - a.score
-                    )
-
-
-                    .slice(0, 20);
-
-
-            /* لا توجد نتائج */
+                    return { patient: patient, score: score };
+                })
+                .filter(item => item !== null)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 20);
 
             if (matches.length === 0) {
-
-                const empty =
-                    document.createElement('div');
-
-
-                empty.className =
-                    'suggestion-empty';
-
-
-                empty.textContent =
-                    patientsData.length === 0
-                        ? 'جاري تحميل أسماء المرضى...'
-                        : 'لا يوجد مريض بهذا الاسم';
-
-
+                const empty = document.createElement('div');
+                empty.className = 'suggestion-empty';
+                empty.textContent = patientsData.length === 0 ? 'جاري تحميل أسماء المرضى...' : 'لا يوجد مريض بهذا الاسم';
                 suggestionsBox.appendChild(empty);
-
                 suggestionsBox.classList.add('open');
-
                 return;
-
             }
-
-
-            /* إنشاء النتائج */
 
             matches.forEach(item => {
+                const patient = item.patient;
+                const suggestion = document.createElement('div');
+                suggestion.className = 'suggestion-item';
 
-                const patient =
-                    item.patient;
-
-
-                const suggestion =
-                    document.createElement('div');
-
-
-                suggestion.className =
-                    'suggestion-item';
-
-
-                const nameSpan =
-                    document.createElement('span');
-
-
-                nameSpan.textContent =
-                    patient.name;
-
-
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = patient.name;
                 suggestion.appendChild(nameSpan);
 
-
                 if (patient.admissionDate) {
-
-                    const dateSpan =
-                        document.createElement('span');
-
-
-                    dateSpan.className =
-                        'sugg-date';
-
-
-                    dateSpan.textContent =
-                        'تاريخ الدخول: ' +
-                        patient.admissionDate;
-
-
+                    const dateSpan = document.createElement('span');
+                    dateSpan.className = 'sugg-date';
+                    dateSpan.textContent = 'تاريخ الدخول: ' + patient.admissionDate;
                     suggestion.appendChild(dateSpan);
-
                 }
 
-
-                /* ==========================================
-                   الكمبيوتر
-                   ========================================== */
-
-                suggestion.addEventListener(
-                    'mousedown',
-                    (e) => {
-
-                        e.preventDefault();
-
-                        applyPatientSelection(
-                            patient
-                        );
-
-                    }
-                );
-
-
-                /* ==========================================
-                   الموبايل
-                   ========================================== */
+                suggestion.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    applyPatientSelection(patient);
+                });
 
                 let touchStartY = 0;
-
                 let touchStartX = 0;
 
+                suggestion.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    touchStartY = touch.clientY;
+                    touchStartX = touch.clientX;
+                }, { passive: true });
 
-                suggestion.addEventListener(
-                    'touchstart',
-                    (e) => {
+                suggestion.addEventListener('touchend', (e) => {
+                    const touch = e.changedTouches[0];
+                    const deltaY = Math.abs(touch.clientY - touchStartY);
+                    const deltaX = Math.abs(touch.clientX - touchStartX);
 
-                        const touch =
-                            e.touches[0];
+                    if (deltaY > 10 || deltaX > 10) return;
 
+                    e.preventDefault();
+                    applyPatientSelection(patient);
+                }, { passive: false });
 
-                        touchStartY =
-                            touch.clientY;
-
-
-                        touchStartX =
-                            touch.clientX;
-
-
-                        /*
-                         * لا نستخدم preventDefault
-                         * هنا حتى يسمح الهاتف بالـ Scroll
-                         */
-
-                    },
-                    {
-                        passive: true
-                    }
-                );
-
-
-                suggestion.addEventListener(
-                    'touchend',
-                    (e) => {
-
-                        const touch =
-                            e.changedTouches[0];
-
-
-                        const deltaY =
-                            Math.abs(
-                                touch.clientY -
-                                touchStartY
-                            );
-
-
-                        const deltaX =
-                            Math.abs(
-                                touch.clientX -
-                                touchStartX
-                            );
-
-
-                        /*
-                         * لو الإصبع تحرك:
-                         * المستخدم بيعمل Scroll
-                         */
-
-                        if (
-                            deltaY > 10 ||
-                            deltaX > 10
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        /*
-                         * لمسة ثابتة:
-                         * اختيار المريض
-                         */
-
-                        e.preventDefault();
-
-
-                        applyPatientSelection(
-                            patient
-                        );
-
-                    },
-                    {
-                        passive: false
-                    }
-                );
-
-
-                suggestionsBox.appendChild(
-                    suggestion
-                );
-
+                suggestionsBox.appendChild(suggestion);
             });
 
-
-            suggestionsBox.classList.add(
-                'open'
-            );
+            suggestionsBox.classList.add('open');
         }
 
-
-        /* =====================================================
-           البحث أثناء الكتابة
-           ===================================================== */
-
-        nameInput.addEventListener(
-            'input',
-            (e) => {
-
-                renderSuggestions(
-                    e.target.value
-                );
-
-                saveToLocalStorage();
-
-            }
-        );
-
-
-        /* =====================================================
-           عند التركيز على الخانة
-           ===================================================== */
-
-        nameInput.addEventListener(
-            'focus',
-            (e) => {
-
-                if (
-                    e.target.value.trim()
-                ) {
-
-                    renderSuggestions(
-                        e.target.value
-                    );
-
-                }
-
-            }
-        );
-
-
-        /* =====================================================
-           الخروج من الخانة
-           ===================================================== */
-
-        nameInput.addEventListener(
-            'blur',
-            () => {
-
-                /*
-                 * تأخير بسيط يسمح بالضغط
-                 * على نتيجة المقترحات
-                 */
-
-                setTimeout(
-                    closeSuggestions,
-                    250
-                );
-
-            }
-        );
-
-
-        /* =====================================================
-           حفظ التاريخ
-           ===================================================== */
-
-        dateCell.addEventListener(
-            'input',
-            saveToLocalStorage
-        );
-
-
-        /* =====================================================
-           حفظ الخانات القابلة للتحرير
-           ===================================================== */
-
-        Array.from(
-            tr.querySelectorAll(
-                'td[contenteditable="true"]'
-            )
-        ).forEach(td => {
-
-            td.addEventListener(
-                'input',
-                saveToLocalStorage
-            );
-
+        nameInput.addEventListener('input', (e) => {
+            renderSuggestions(e.target.value);
+            saveToLocalStorage();
         });
 
+        nameInput.addEventListener('focus', (e) => {
+            if (e.target.value.trim()) {
+                renderSuggestions(e.target.value);
+            }
+        });
+
+        nameInput.addEventListener('blur', () => {
+            setTimeout(closeSuggestions, 250);
+        });
+
+        dateCell.addEventListener('input', saveToLocalStorage);
+
+        Array.from(tr.querySelectorAll('td[contenteditable="true"]')).forEach(td => {
+            td.addEventListener('input', saveToLocalStorage);
+        });
 
         tbody.appendChild(tr);
-
         renumberRows();
     }
 
@@ -1345,58 +890,25 @@
        ========================================================= */
 
     function saveToLocalStorage() {
-
         const data = {
-
-            date:
-                currentDateFormatted,
-                
-            dept:
-                deptInput.value,
-
-            doc:
-                docInput.value,
-
+            date: currentDateFormatted,
+            dept: deptInput.value,
+            doc: docInput.value,
             rows: []
-
         };
 
-
         Array.from(tbody.rows).forEach(tr => {
-
             data.rows.push({
-
-                name:
-                    tr.querySelector(
-                        '.name-input'
-                    ).value.trim(),
-
-                date:
-                    tr.querySelector(
-                        '.table-date-input'
-                    ).value,
-
-                residence:
-                    tr.cells[3].innerText.trim(),
-
-                diag:
-                    tr.cells[4].innerText.trim(),
-
-                plan:
-                    tr.cells[5].innerText.trim(),
-
-                notes:
-                    tr.cells[6].innerText.trim()
-
+                name: tr.querySelector('.name-input').value.trim(),
+                date: tr.querySelector('.table-date-input').value,
+                residence: tr.cells[3].innerText.trim(),
+                diag: tr.cells[4].innerText.trim(),
+                plan: tr.cells[5].innerText.trim(),
+                notes: tr.cells[6].innerText.trim()
             });
-
         });
 
-
-        safeSetLocal(
-            'sidnawi_round_data',
-            JSON.stringify(data)
-        );
+        safeSetLocal('sidnawi_round_data', JSON.stringify(data));
     }
 
 
@@ -1405,68 +917,26 @@
        ========================================================= */
 
     function loadFromLocalStorage() {
-
-        const savedData =
-            safeGetLocal(
-                'sidnawi_round_data'
-            );
-
+        const savedData = safeGetLocal('sidnawi_round_data');
 
         if (savedData) {
-
             try {
-
-                const data =
-                    JSON.parse(savedData);
-
-
+                const data = JSON.parse(savedData);
                 if (data.date) {
-
-                    dateInput.value =
-                        data.date;
-
+                    // ignore loaded date, use static today
                 }
+                deptInput.value = data.dept || '';
+                docInput.value = data.doc || '';
 
-
-                deptInput.value =
-                    data.dept || '';
-
-
-                docInput.value =
-                    data.doc || '';
-
-
-                if (
-                    data.rows &&
-                    data.rows.length > 0
-                ) {
-
-                    data.rows.forEach(
-                        rowData =>
-                            addRow(rowData)
-                    );
-
+                if (data.rows && data.rows.length > 0) {
+                    data.rows.forEach(rowData => addRow(rowData));
                     return;
-
                 }
-
-            }
-
-            catch (e) {}
-
+            } catch (e) {}
         }
 
-
-        /* إنشاء 5 صفوف افتراضية */
-
-        for (
-            let i = 1;
-            i <= 5;
-            i++
-        ) {
-
+        for (let i = 1; i <= 5; i++) {
             addRow();
-
         }
     }
 
@@ -1476,120 +946,45 @@
        ========================================================= */
 
     async function saveToCloud() {
-
-        const rows =
-            Array.from(tbody.rows)
-
-                .map(tr => ({
-
-                    name:
-                        tr.querySelector(
-                            '.name-input'
-                        ).value.trim(),
-
-                    admissionDate:
-                        tr.querySelector(
-                            '.table-date-input'
-                        ).value,
-
-                    residence:
-                        tr.cells[3].innerText.trim(),
-
-                    diag:
-                        tr.cells[4].innerText.trim(),
-
-                    plan:
-                        tr.cells[5].innerText.trim(),
-
-                    notes:
-                        tr.cells[6].innerText.trim()
-
-                }))
-
-                .filter(
-                    row =>
-                        row.name !== ''
-                );
-
+        const rows = Array.from(tbody.rows)
+            .map(tr => ({
+                name: tr.querySelector('.name-input').value.trim(),
+                admissionDate: tr.querySelector('.table-date-input').value,
+                residence: tr.cells[3].innerText.trim(),
+                diag: tr.cells[4].innerText.trim(),
+                plan: tr.cells[5].innerText.trim(),
+                notes: tr.cells[6].innerText.trim()
+            }))
+            .filter(row => row.name !== '');
 
         if (rows.length === 0) {
-
-            alert(
-                'لا يوجد بيانات مرضى لحفظها.'
-            );
-
+            alert('لا يوجد بيانات مرضى لحفظها.');
             return false;
         }
 
-
-        const currentHour =
-            new Date().getHours();
-
-
-        const shiftType =
-            currentHour >= 14
-                ? 'مسائي'
-                : 'صباحي';
-
+        const currentHour = new Date().getHours();
+        const shiftType = currentHour >= 14 ? 'مسائي' : 'صباحي';
 
         const payload = {
-
-            date:
-               currentDateFormatted,
-
-            shift:
-                shiftType,
-
-            dept:
-                deptInput.value.trim() ||
-                'عام',
-
-            doc:
-                docInput.value.trim() ||
-                'غير مسجل',
-
-            rows:
-                rows
-
+            date: currentDateFormatted,
+            shift: shiftType,
+            dept: deptInput.value.trim() || 'عام',
+            doc: docInput.value.trim() || 'غير مسجل',
+            rows: rows
         };
 
-
         try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
 
-            const response =
-                await fetch(
-                    API_URL,
-                    {
-                        method: 'POST',
+            const result = await response.json();
+            return result.status === 'success';
 
-                        headers: {
-                            'Content-Type':
-                                'text/plain;charset=utf-8'
-                        },
-
-                        body:
-                            JSON.stringify(
-                                payload
-                            )
-                    }
-                );
-
-
-            const result =
-                await response.json();
-
-
-            return result.status ===
-                'success';
-
-        }
-
-        catch (error) {
-
-            alert(
-                '⚠️ تم فتح الطباعة، ولكن تعذر الحفظ السحابي الحالي.'
-            );
-
+        } catch (error) {
+            alert('⚠️ تم فتح الطباعة، ولكن تعذر الحفظ السحابي الحالي.');
             return false;
         }
     }
@@ -1600,76 +995,31 @@
        ========================================================= */
 
     async function saveAndPrint() {
-
-        const deptVal =
-            deptInput.value.trim();
-
-
-        const docVal =
-            docInput.value.trim();
-
+        const deptVal = deptInput.value.trim();
+        const docVal = docInput.value.trim();
 
         if (!deptVal || !docVal) {
-
-            alert(
-                '⚠️ تنبيه هام:\nمن فضلك اكتب "اسم القسم" و "اسم الطبيب" في الأعلى قبل الحفظ والطباعة.'
-            );
-
-
-            if (!deptVal) {
-
-                deptInput.focus();
-
-            }
-
-            else {
-
-                docInput.focus();
-
-            }
-
-
+            alert('⚠️ تنبيه هام:\nمن فضلك اكتب "اسم القسم" و "اسم الطبيب" في الأعلى قبل الحفظ والطباعة.');
+            if (!deptVal) deptInput.focus();
+            else docInput.focus();
             return;
         }
 
-
-        const btn =
-            document.getElementById(
-                'cloud-save-btn'
-            );
-
-
-        const originalText =
-            btn.textContent;
-
+        const btn = document.getElementById('cloud-save-btn');
+        const originalText = btn.textContent;
 
         btn.disabled = true;
-
-        btn.textContent =
-            'جاري الحفظ... ⏳';
-
+        btn.textContent = 'جاري الحفظ... ⏳';
 
         await saveToCloud();
 
-
-        btn.textContent =
-            'جاري فتح الطباعة...';
-
-
+        btn.textContent = 'جاري فتح الطباعة...';
         customPrint();
 
-
-        setTimeout(
-            () => {
-
-                btn.textContent =
-                    originalText;
-
-                btn.disabled = false;
-
-            },
-            1500
-        );
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 1500);
     }
 
 
@@ -1678,20 +1028,9 @@
        ========================================================= */
 
     function clearData() {
-
-        if (
-            confirm(
-                'هل أنت متأكد من مسح جميع بيانات الشيت الحالي وبدء شيت جديد؟'
-            )
-        ) {
-
-            safeRemoveLocal(
-                'sidnawi_round_data'
-            );
-
-
+        if (confirm('هل أنت متأكد من مسح جميع بيانات الشيت الحالي وبدء شيت جديد؟')) {
+            safeRemoveLocal('sidnawi_round_data');
             location.reload();
-
         }
     }
 
@@ -1700,25 +1039,16 @@
        Auto Save
        ========================================================= */
 
-
-    deptInput.addEventListener(
-        'input',
-        saveToLocalStorage
-    );
-
-
-    docInput.addEventListener(
-        'input',
-        saveToLocalStorage
-    );
+    deptInput.addEventListener('input', saveToLocalStorage);
+    docInput.addEventListener('input', saveToLocalStorage);
 
 
     /* =========================================================
        تشغيل الصفحة
        ========================================================= */
-
-    fetchPatientsJSON();
-
+    
+    // تم التصحيح هنا: استدعاء دالة الـ CSV الصحيحة
+    fetchPatientsCSV();
     loadFromLocalStorage();
 
 
@@ -1727,46 +1057,18 @@
        ========================================================= */
 
     function customPrint() {
+        const deptName = deptInput.value.trim() ? deptInput.value.trim() : "عام";
+        const currentHour = new Date().getHours();
+        const shiftType = currentHour >= 14 ? "مسائي" : "صباحي";
 
-        const deptName =
-            deptInput.value.trim()
-                ? deptInput.value.trim()
-                : "عام";
-
-
-        const currentHour =
-            new Date().getHours();
-
-
-        const shiftType =
-            currentHour >= 14
-                ? "مسائي"
-                : "صباحي";
-
-
-        document.title =
-            `شيت_مرور_${deptName}_${shiftType}_${currentDateFormatted}`;
-
+        document.title = `شيت_مرور_${deptName}_${shiftType}_${currentDateFormatted}`;
 
         function restoreTitle() {
-
-            document.title =
-                originalTitle;
-
-
-            window.removeEventListener(
-                'afterprint',
-                restoreTitle
-            );
+            document.title = originalTitle;
+            window.removeEventListener('afterprint', restoreTitle);
         }
 
-
-        window.addEventListener(
-            'afterprint',
-            restoreTitle
-        );
-
-
+        window.addEventListener('afterprint', restoreTitle);
         window.print();
     }
 
