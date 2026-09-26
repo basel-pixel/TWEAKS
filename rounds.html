@@ -596,62 +596,63 @@
        تحميل أسماء المرضى (CSV مباشر بدون كاش)
        ========================================================= */
 
-    async function fetchPatientsCSV(retries = 1){
-       loadingIndicator.style.color = '#2563eb';
-    loadingIndicator.innerText = retries === 1 
-        ? 'جاري مزامنة أسماء المرضى من الشيت... ⏳' 
-        : 'جاري جلب البيانات الساخنة... 🔄';
+    async function fetchPatientsCSV(retries = 1) {
+        loadingIndicator.style.color = '#2563eb';
+        loadingIndicator.innerText = retries === 1 
+            ? 'جاري مزامنة أسماء المرضى من الشيت... ⏳' 
+            : 'جاري جلب البيانات الساخنة... 🔄';
 
-    try {
-        const response = await fetch(CSV_URL);
+        try {
+            const response = await fetch(CSV_URL);
 
-        if (!response.ok) {
-            throw new Error('فشل جلب الـ CSV');
-        }
-
-        const csvText = await response.text();
-        const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
-
-        if (lines.length < 2) {
-            loadingIndicator.style.color = '#f59e0b';
-            loadingIndicator.innerText = '⚠️ الشيت فارغ من الأسماء';
-            return;
-        }
-
-        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
-        let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
-        let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
-
-        if (nameIdx === -1) nameIdx = 1;
-        if (dateIdx === -1) dateIdx = 2;
-
-        patientsData = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
-            const name = cols[nameIdx] || '';
-            const date = cols[dateIdx] || '';
-
-            if (name) {
-                patientsData.push({ name: name, admissionDate: date });
+            if (!response.ok) {
+                throw new Error('فشل جلب الـ CSV');
             }
-        }
 
-        loadingIndicator.style.color = '#16a34a';
-        loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+            const csvText = await response.text();
+            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
 
-        setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
+            if (lines.length < 2) {
+                loadingIndicator.style.color = '#f59e0b';
+                loadingIndicator.innerText = '⚠️ الشيت فارغ من الأسماء';
+                return;
+            }
 
-    } catch (e) {
-        // إذا فشل الطلب وكان لدينا محاولات متبقية، نعيد المحاولة بعد ثانية ونصف
-        if (retries > 0) {
-            setTimeout(() => {
-                fetchPatientsCSV(retries - 1); // استدعاء الدالة مجدداً (ستكون دافئة الآن)
-            }, 1500);
-        } else {
-            console.error(e);
-            loadingIndicator.style.color = '#dc2626';
-            loadingIndicator.innerText = '⚠️ تعذر سحب الأسماء تلقائياً، يرجى تحديث الصفحة';
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+            let nameIdx = headers.findIndex(h => h.includes('اسم') || h.toLowerCase().includes('name'));
+            let dateIdx = headers.findIndex(h => h.includes('تاريخ') || h.toLowerCase().includes('date') || h.toLowerCase().includes('admission'));
+
+            if (nameIdx === -1) nameIdx = 1;
+            if (dateIdx === -1) dateIdx = 2;
+
+            patientsData = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+                const name = cols[nameIdx] || '';
+                const date = cols[dateIdx] || '';
+
+                if (name) {
+                    patientsData.push({ name: name, admissionDate: date });
+                }
+            }
+
+            loadingIndicator.style.color = '#16a34a';
+            loadingIndicator.innerText = `✅ تم تحميل ${patientsData.length} مريض بنجاح`;
+
+            setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
+
+        } catch (e) {
+            // إذا فشل الطلب وكان لدينا محاولات متبقية، نعيد المحاولة بعد ثانية ونصف
+            if (retries > 0) {
+                setTimeout(() => {
+                    fetchPatientsCSV(retries - 1); // استدعاء الدالة مجدداً (ستكون دافئة الآن)
+                }, 1500);
+            } else {
+                console.error(e);
+                loadingIndicator.style.color = '#dc2626';
+                loadingIndicator.innerText = '⚠️ تعذر سحب الأسماء تلقائياً، يرجى تحديث الصفحة';
+            }
         }
     }
 
@@ -1050,7 +1051,7 @@
        تشغيل الصفحة
        ========================================================= */
     
-    // تم التصحيح هنا: استدعاء دالة الـ CSV الصحيحة
+    // استدعاء دالة الـ CSV الصحيحة
     fetchPatientsCSV();
     loadFromLocalStorage();
 
