@@ -178,26 +178,18 @@
 
         .suggestions-box {
             display: none;
-
             position: absolute;
             top: 100%;
             right: 0;
             left: 0;
-
             z-index: 1000;
-
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-
             max-height: 240px;
             overflow-y: auto;
-
             text-align: right;
-
-            /* مهم جداً للموبايل */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             touch-action: pan-y;
@@ -212,18 +204,12 @@
             font-size: 14px;
             font-weight: 600;
             color: #0f172a;
-
             cursor: pointer;
-
             border-bottom: 1px solid #f1f5f9;
-
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-
-            /* السماح بالسحب العمودي */
             touch-action: pan-y;
-
             user-select: none;
             -webkit-user-select: none;
         }
@@ -306,6 +292,11 @@
             background: #94a3b8;
             cursor: not-allowed;
             box-shadow: none;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
         }
 
         .add-btn {
@@ -396,6 +387,13 @@
         id="cloud-save-btn"
         onclick="saveAndPrint()">
         حفظ الشيت وطباعته 💾🖨️
+    </button>
+
+    <button
+        class="btn share-btn no-print"
+        id="share-link-btn"
+        onclick="shareSheetLink()">
+        نسخ رابط الشيت بالبيانات للمشاركة 🔗
     </button>
 
     <div id="content-to-print">
@@ -533,6 +531,76 @@
 
 
     /* =========================================================
+       دوال تشفير وفك تشفير البيانات للرابط (تدعم العربية بالكامل)
+       ========================================================= */
+
+    function encodeDataToHash(obj) {
+        const json = JSON.stringify(obj);
+        const bytes = new TextEncoder().encode(json);
+        let binary = '';
+        bytes.forEach(b => binary += String.fromCharCode(b));
+        return encodeURIComponent(btoa(binary));
+    }
+
+    function decodeDataFromHash(encodedStr) {
+        const base64 = decodeURIComponent(encodedStr);
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        const json = new TextDecoder().decode(bytes);
+        return JSON.parse(json);
+    }
+
+
+    /* =========================================================
+       مشاركة الرابط بالبيانات
+       ========================================================= */
+
+    function shareSheetLink() {
+        saveToLocalStorage();
+        const rawSaved = safeGetLocal('sidnawi_round_data');
+        if (!rawSaved) {
+            alert('لا توجد بيانات لمشاركتها.');
+            return;
+        }
+
+        const parsed = JSON.parse(rawSaved);
+
+        // فلترة الصفوف الفارغة تماماً لتقصير الرابط قدر الإمكان
+        const nonEmptyRows = (parsed.rows || []).filter(r =>
+            r.name || r.date || r.residence || r.diag || r.plan || r.notes
+        );
+
+        if (nonEmptyRows.length === 0 && !parsed.dept && !parsed.doc) {
+            alert('⚠️ الشيت فارغ حالياً! اكتب بيانات مريض واحد على الأقل قبل نسخ رابط المشاركة.');
+            return;
+        }
+
+        const payloadToShare = {
+            date: parsed.date,
+            dept: parsed.dept,
+            doc: parsed.doc,
+            rows: nonEmptyRows
+        };
+
+        const encoded = encodeDataToHash(payloadToShare);
+        const shareUrl = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('✅ تم نسخ الرابط شاملاً البيانات!\nابعته لزميلك على واتساب، وأول ما يفتحه هيلاقي البيانات قدامه ويقدر يكمل عليها.');
+            }).catch(() => {
+                prompt('انسخ الرابط التالي وشاركه مع زميلك:', shareUrl);
+            });
+        } else {
+            prompt('انسخ الرابط التالي وشاركه مع زميلك:', shareUrl);
+        }
+    }
+
+
+    /* =========================================================
        التاريخ الحالي
        ========================================================= */
 
@@ -554,17 +622,11 @@
         return String(text || '')
             .trim()
             .toLowerCase()
-            // إزالة التشكيل
             .replace(/[\u064B-\u065F\u0670]/g, '')
-            // توحيد الألف
             .replace(/[أإآٱ]/g, 'ا')
-            // الألف المقصورة
             .replace(/ى/g, 'ي')
-            // التاء المربوطة
             .replace(/ة/g, 'ه')
-            // الهمزات
             .replace(/[ؤئ]/g, 'ء')
-            // توحيد المسافات
             .replace(/\s+/g, ' ')
             .trim();
     }
@@ -646,10 +708,9 @@
             setTimeout(() => { loadingIndicator.innerText = ''; }, 3000);
 
         } catch (e) {
-            // إذا فشل الطلب وكان لدينا محاولات متبقية، نعيد المحاولة بعد ثانية ونصف
             if (retries > 0) {
                 setTimeout(() => {
-                    fetchPatientsCSV(retries - 1); // استدعاء الدالة مجدداً (ستكون دافئة الآن)
+                    fetchPatientsCSV(retries - 1);
                 }, 1500);
             } else {
                 console.error(e);
@@ -920,28 +981,50 @@
 
 
     /* =========================================================
-       تحميل Local Storage
+       تحميل البيانات (من الرابط أولاً، ثم من Local Storage)
        ========================================================= */
 
-    function loadFromLocalStorage() {
-        const savedData = safeGetLocal('sidnawi_round_data');
+    function loadInitialData() {
+        let data = null;
 
-        if (savedData) {
+        // 1. التحقق مما إذا كان الرابط يحتوي على بيانات مشاركة (#data=...)
+        if (window.location.hash && window.location.hash.startsWith('#data=')) {
             try {
-                const data = JSON.parse(savedData);
-                if (data.date) {
-                    // ignore loaded date, use static today
-                }
-                deptInput.value = data.dept || '';
-                docInput.value = data.doc || '';
+                const encoded = window.location.hash.substring(6); // إزالة '#data='
+                data = decodeDataFromHash(encoded);
 
-                if (data.rows && data.rows.length > 0) {
-                    data.rows.forEach(rowData => addRow(rowData));
-                    return;
-                }
-            } catch (e) {}
+                // حفظ البيانات المستلمة في جهاز المستلم فوراً
+                safeSetLocal('sidnawi_round_data', JSON.stringify(data));
+
+                // تنظيف الرابط من الكود الطويل حتى يبدو طبيعياً
+                history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            } catch (e) {
+                console.error('خطأ في قراءة بيانات الرابط المشترك:', e);
+            }
         }
 
+        // 2. إذا لم يكن هناك رابط مشترك، نقرأ من LocalStorage العادي
+        if (!data) {
+            const savedData = safeGetLocal('sidnawi_round_data');
+            if (savedData) {
+                try {
+                    data = JSON.parse(savedData);
+                } catch (e) {}
+            }
+        }
+
+        // 3. تعبئة الجدول بالبيانات إن وجدت
+        if (data) {
+            deptInput.value = data.dept || '';
+            docInput.value = data.doc || '';
+
+            if (data.rows && data.rows.length > 0) {
+                data.rows.forEach(rowData => addRow(rowData));
+                return;
+            }
+        }
+
+        // 4. الوضع الافتراضي: فتح 5 صفوف فارغة
         for (let i = 1; i <= 5; i++) {
             addRow();
         }
@@ -1037,6 +1120,7 @@
     function clearData() {
         if (confirm('هل أنت متأكد من مسح جميع بيانات الشيت الحالي وبدء شيت جديد؟')) {
             safeRemoveLocal('sidnawi_round_data');
+            history.replaceState(null, document.title, window.location.pathname + window.location.search);
             location.reload();
         }
     }
@@ -1054,9 +1138,8 @@
        تشغيل الصفحة
        ========================================================= */
     
-    // استدعاء دالة الـ CSV الصحيحة
     fetchPatientsCSV();
-    loadFromLocalStorage();
+    loadInitialData();
 
 
     /* =========================================================
@@ -1069,17 +1152,10 @@
         const shiftType = currentHour >= 14 ? "مسائي" : "صباحي";
 
         document.title = `شيت_مرور_${deptName}_${shiftType}_${currentDateFormatted}`;
-
-        function restoreTitle() {
-            document.title = originalTitle;
-            window.removeEventListener('afterprint', restoreTitle);
-        }
-
-        window.addEventListener('afterprint', restoreTitle);
         window.print();
+        document.title = originalTitle;
     }
 
 </script>
-
 </body>
 </html>
